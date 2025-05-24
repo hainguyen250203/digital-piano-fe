@@ -1,7 +1,8 @@
 'use client'
 
-import { useFetchAddressList, useFetchCreateAddress, useFetchDeleteAddress, useFetchSetDefaultAddress, useFetchUpdateAddress } from '@/hooks/apis/address'
+import { useFetchCreateAddress, useFetchDeleteAddress, useFetchSetDefaultAddress, useFetchUpdateAddress } from '@/hooks/apis/address'
 import { CreateAddressPayload, ResponseAddress, UpdateAddressPayload } from '@/types/address.type'
+import { BaseResponse } from '@/types/base-response'
 import AddIcon from '@mui/icons-material/Add'
 import CancelIcon from '@mui/icons-material/Cancel'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
@@ -11,32 +12,35 @@ import HomeIcon from '@mui/icons-material/Home'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
 import SaveIcon from '@mui/icons-material/Save'
 import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
-  TextField,
-  Tooltip,
-  Typography
+    Alert,
+    Box,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    IconButton,
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TablePagination,
+    TableRow,
+    TextField,
+    Tooltip,
+    Typography
 } from '@mui/material'
 import React, { useMemo, useState } from 'react'
 
-export default function AddressSection() {
-  // Address state and hooks
-  const { data: addressData, isLoading: addressLoading, refetch: addressRefetch } = useFetchAddressList()
+interface AddressSectionProps {
+  addressData: BaseResponse<ResponseAddress[]> | undefined
+  addressRefetch: () => void
+}
+
+export default function AddressSection({ addressData, addressRefetch }: AddressSectionProps) {
+  // Address state
   const [openAddressDialog, setOpenAddressDialog] = useState(false)
   const [currentAddress, setCurrentAddress] = useState<ResponseAddress | null>(null)
   const [addressFormData, setAddressFormData] = useState({
@@ -164,14 +168,6 @@ export default function AddressSection() {
 
   // Get addresses array safely
   const addresses = useMemo(() => addressData?.data || [], [addressData])
-
-  if (addressLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-        <CircularProgress />
-      </Box>
-    )
-  }
 
   return (
     <>

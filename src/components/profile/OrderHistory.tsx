@@ -1,17 +1,22 @@
 'use client'
 
 import OrderDetailPopup from '@/components/popup/OrderDetailPopup'
-import { useFetchGetMyOrders, useFetchUserCancelOrder } from '@/hooks/apis/order'
+import { useFetchUserCancelOrder } from '@/hooks/apis/order'
 import { BaseResponse } from '@/types/base-response'
 import { ResponseOrder } from '@/types/order.type'
-import { Alert, Box, CircularProgress, Paper, SelectChangeEvent, TablePagination } from '@mui/material'
+import { Alert, Box, Paper, SelectChangeEvent, TablePagination } from '@mui/material'
 import React, { useState } from 'react'
 import { toast } from 'react-toastify'
 import OrderHistoryHeader from './OrderHistoryHeader'
 import OrderStatusFilter from './OrderStatusFilter'
 import OrdersTable from './OrdersTable'
 
-export default function OrderHistory() {
+interface OrderHistoryProps {
+  orderData: BaseResponse<ResponseOrder[]> | undefined
+  orderRefetch: () => void
+}
+
+export default function OrderHistory({ orderData, orderRefetch }: OrderHistoryProps) {
   // State
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [page, setPage] = useState(0)
@@ -20,12 +25,10 @@ export default function OrderHistory() {
   const [detailOpen, setDetailOpen] = useState(false)
 
   // API hooks
-  const { data: ordersData, isLoading, error, refetch } = useFetchGetMyOrders()
-
   const { mutate: userCancelOrder, isPending: isUserCancelOrderLoading } = useFetchUserCancelOrder({
     onSuccess: (data: BaseResponse<ResponseOrder>) => {
       toast.success(data.message || 'Đơn hàng đã được hủy thành công', { position: 'top-center' })
-      refetch()
+      orderRefetch()
     },
     onError: (error: BaseResponse<null>) => {
       toast.error(error.message || 'Đã có lỗi xảy ra trong quá trình hủy đơn hàng. Vui lòng thử lại sau.', { position: 'top-center' })
@@ -64,7 +67,7 @@ export default function OrderHistory() {
   }
 
   const handleOrderStatusChange = () => {
-    refetch()
+    orderRefetch()
   }
 
   // Format date helper
@@ -78,21 +81,11 @@ export default function OrderHistory() {
     })
   }
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-        <CircularProgress />
-      </Box>
-    )
-  }
-
-  // Error state
-  if (error || !ordersData) {
+  if (!orderData) {
     return <Alert severity='error'>Không thể tải lịch sử đơn hàng. Vui lòng thử lại.</Alert>
   }
 
-  const orders = ordersData?.data || []
+  const orders = orderData.data || []
   const filteredOrders = statusFilter === 'all' ? orders : orders.filter(order => order.orderStatus === statusFilter)
   const paginatedOrders = filteredOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
 

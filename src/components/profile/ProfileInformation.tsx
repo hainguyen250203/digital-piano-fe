@@ -1,7 +1,8 @@
 'use client'
 
-import { useFetchCurrentUserProfile, useFetchUpdateAvatar, useFetchUpdateProfile } from '@/hooks/apis/profile'
+import { UserData } from '@/hooks/apis/user'
 import { Role } from '@/services/apis/user'
+import { BaseResponse } from '@/types/base-response'
 import BadgeIcon from '@mui/icons-material/Badge'
 import CameraAltIcon from '@mui/icons-material/CameraAlt'
 import CancelIcon from '@mui/icons-material/Cancel'
@@ -10,30 +11,29 @@ import EmailIcon from '@mui/icons-material/Email'
 import PersonIcon from '@mui/icons-material/Person'
 import PhoneIcon from '@mui/icons-material/Phone'
 import SaveIcon from '@mui/icons-material/Save'
-import { Alert, Avatar, Box, Button, Card, CardContent, CircularProgress, Divider, TextField, Typography } from '@mui/material'
+import { Avatar, Box, Button, Card, CardContent, Divider, TextField, Typography } from '@mui/material'
 import React, { useState } from 'react'
 
-export default function ProfileInformation() {
-  // Profile state and hooks
-  const { data: profileData, isLoading: profileLoading, error: profileError, refetch: profileRefetch } = useFetchCurrentUserProfile()
+interface ProfileInformationProps {
+  profileData: BaseResponse<UserData>
+  onUpdateProfile: (data: { phoneNumber: string }) => void
+  onUpdateAvatar: (formData: FormData) => void
+  isUpdatingProfile: boolean
+  isUpdatingAvatar: boolean
+}
+
+export default function ProfileInformation({ 
+  profileData, 
+  onUpdateProfile,
+  onUpdateAvatar,
+  isUpdatingProfile,
+  isUpdatingAvatar
+}: ProfileInformationProps) {
+  // Profile state
   const [phoneNumber, setPhoneNumber] = useState('')
   const [isEditing, setIsEditing] = useState(false)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-
-  // Mutations
-  const updateProfileMutation = useFetchUpdateProfile({
-    onSuccess: () => {
-      profileRefetch()
-      setIsEditing(false)
-    }
-  })
-
-  const updateAvatarMutation = useFetchUpdateAvatar({
-    onSuccess: () => {
-      profileRefetch()
-    }
-  })
 
   // Profile effects and handlers
   React.useEffect(() => {
@@ -65,28 +65,20 @@ export default function ProfileInformation() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    updateProfileMutation.mutate({ phoneNumber })
+    onUpdateProfile({ phoneNumber })
 
     if (avatarFile) {
       const formData = new FormData()
-      formData.append('avatar', avatarFile)
-      updateAvatarMutation.mutate(formData)
+      formData.append('file', avatarFile)
+      onUpdateAvatar(formData)
     }
   }
 
-  if (profileLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-        <CircularProgress />
-      </Box>
-    )
+  if (!profileData?.data) {
+    return null
   }
 
-  if (profileError || !profileData) {
-    return <Alert severity='error'>Không thể tải thông tin cá nhân. Vui lòng thử lại.</Alert>
-  }
-
-  const { email, avatarUrl, role } = profileData.data || {}
+  const { email, role, avatarUrl } = profileData.data
 
   return (
     <Card
@@ -209,8 +201,15 @@ export default function ProfileInformation() {
                 <Button variant='outlined' onClick={handleCancelEdit} size='medium' startIcon={<CancelIcon />}>
                   Hủy
                 </Button>
-                <Button type='submit' variant='contained' color='primary' disabled={updateProfileMutation.isPending || updateAvatarMutation.isPending} size='medium' startIcon={<SaveIcon />}>
-                  {updateProfileMutation.isPending || updateAvatarMutation.isPending ? 'Đang Lưu...' : 'Lưu'}
+                <Button 
+                  type='submit' 
+                  variant='contained' 
+                  color='primary' 
+                  disabled={isUpdatingProfile || isUpdatingAvatar} 
+                  size='medium' 
+                  startIcon={<SaveIcon />}
+                >
+                  {isUpdatingProfile || isUpdatingAvatar ? 'Đang Lưu...' : 'Lưu'}
                 </Button>
               </>
             )}
@@ -220,3 +219,4 @@ export default function ProfileInformation() {
     </Card>
   )
 }
+
