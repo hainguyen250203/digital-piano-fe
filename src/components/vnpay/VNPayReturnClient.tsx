@@ -15,6 +15,22 @@ export default function VNPayReturnClient() {
   const [paymentStatus, setPaymentStatus] = useState<'success' | 'failed' | 'processing'>('processing')
   const [verificationResult, setVerificationResult] = useState<ResponseVerifyReturnUrl | null>(null)
 
+  // Add error handler for VNPay sandbox errors
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      // Check if the error is from VNPay sandbox timer
+      if (event.message.includes('timer is not defined') && event.filename?.includes('vnpayment.vn')) {
+        // Prevent the error from showing in console
+        event.preventDefault()
+        return true
+      }
+      return false
+    }
+
+    window.addEventListener('error', handleError)
+    return () => window.removeEventListener('error', handleError)
+  }, [])
+
   const { vnpParams, txnRef } = useMemo(() => {
     const params: VNPayReturnParams = {
       vnp_Amount: searchParams?.get('vnp_Amount') || '',
@@ -70,6 +86,12 @@ export default function VNPayReturnClient() {
       setPaymentStatus('failed')
     }
   })
+
+  // Add function to check for timeout error
+  const isTimeoutError = (message: string | undefined) => {
+    return message?.includes('quá thời gian chờ thanh toán') || 
+           message?.includes('transaction has expired')
+  }
 
   useEffect(() => {
     if (!vnpParams.vnp_TxnRef) {
@@ -130,17 +152,32 @@ export default function VNPayReturnClient() {
       )
     }
 
+    // Handle timeout error specifically
+    const errorMessage = verificationResult?.message
+    const isTimeout = isTimeoutError(errorMessage)
+
     return (
       <>
         <ErrorIcon color='error' sx={{ fontSize: 64, mb: 2 }} />
         <Typography variant='h5' gutterBottom color='error.main'>
-          Thanh Toán Thất Bại
+          {isTimeout ? 'Hết Thời Gian Thanh Toán' : 'Thanh Toán Thất Bại'}
         </Typography>
         <Typography variant='body1' color='text.secondary' paragraph>
-          {verificationResult?.message || 'Đã có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại sau.'}
+          {isTimeout 
+            ? 'Giao dịch đã hết thời gian chờ thanh toán. Vui lòng thực hiện lại giao dịch.'
+            : errorMessage || 'Đã có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại sau.'}
         </Typography>
         <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center' }}>
-          <Button variant='contained' onClick={handleBackToHome}>
+          {isTimeout && (
+            <Button 
+              variant='contained' 
+              onClick={() => router.push('/checkout')}
+              sx={{ minWidth: 200 }}
+            >
+              Thực Hiện Lại Thanh Toán
+            </Button>
+          )}
+          <Button variant='outlined' onClick={handleBackToHome}>
             Về Trang Chủ
           </Button>
         </Box>

@@ -16,31 +16,40 @@ import React, { useState } from 'react'
 
 interface ProfileInformationProps {
   profileData: BaseResponse<UserData>
-  onUpdateProfile: (data: { phoneNumber: string }) => void
+  onUpdateProfile: (data: { phoneNumber: string | undefined }) => void
   onUpdateAvatar: (formData: FormData) => void
   isUpdatingProfile: boolean
   isUpdatingAvatar: boolean
 }
 
-export default function ProfileInformation({ 
-  profileData, 
-  onUpdateProfile,
-  onUpdateAvatar,
-  isUpdatingProfile,
-  isUpdatingAvatar
-}: ProfileInformationProps) {
+export default function ProfileInformation({ profileData, onUpdateProfile, onUpdateAvatar, isUpdatingProfile, isUpdatingAvatar }: ProfileInformationProps) {
   // Profile state
-  const [phoneNumber, setPhoneNumber] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState<string | undefined>(undefined)
   const [isEditing, setIsEditing] = useState(false)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const wasUpdating = React.useRef(false)
 
   // Profile effects and handlers
   React.useEffect(() => {
     if (profileData?.data) {
-      setPhoneNumber(profileData.data.phoneNumber || '')
+      setPhoneNumber(profileData.data.phoneNumber || undefined)
     }
   }, [profileData])
+
+  // Exit edit mode when updates are complete
+  React.useEffect(() => {
+    // If we were updating and now updates are complete
+    if (wasUpdating.current && !isUpdatingProfile && !isUpdatingAvatar) {
+      setIsEditing(false)
+      wasUpdating.current = false
+    }
+
+    // Track if we're updating
+    if (isUpdatingProfile || isUpdatingAvatar) {
+      wasUpdating.current = true
+    }
+  }, [isUpdatingProfile, isUpdatingAvatar])
 
   const handleStartEdit = () => {
     setIsEditing(true)
@@ -49,7 +58,7 @@ export default function ProfileInformation({
   const handleCancelEdit = () => {
     setIsEditing(false)
     if (profileData?.data) {
-      setPhoneNumber(profileData.data.phoneNumber || '')
+      setPhoneNumber(profileData.data.phoneNumber || undefined)
     }
     setAvatarFile(null)
     setPreviewUrl(null)
@@ -65,12 +74,30 @@ export default function ProfileInformation({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onUpdateProfile({ phoneNumber })
 
+    // Track if any updates were initiated
+    let updatesInitiated = false
+
+    // Only call onUpdateProfile if the phone number has changed and is not empty string or undefined
+    const hasValidPhoneNumber = phoneNumber !== undefined && phoneNumber !== '' && phoneNumber !== null
+    const phoneNumberChanged = profileData?.data && phoneNumber !== profileData.data.phoneNumber
+
+    if (hasValidPhoneNumber && phoneNumberChanged) {
+      onUpdateProfile({ phoneNumber })
+      updatesInitiated = true
+    }
+
+    // Always process avatar update if a new file is selected, regardless of phone number
     if (avatarFile) {
       const formData = new FormData()
       formData.append('file', avatarFile)
       onUpdateAvatar(formData)
+      updatesInitiated = true
+    }
+
+    // If no updates were initiated, just exit edit mode
+    if (!updatesInitiated) {
+      setIsEditing(false)
     }
   }
 
@@ -81,25 +108,8 @@ export default function ProfileInformation({
   const { email, role, avatarUrl } = profileData.data
 
   return (
-    <Card
-      elevation={3}
-      sx={{
-        borderRadius: 2,
-        overflow: 'hidden',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
-      }}
-    >
-      <Box
-        sx={{
-          bgcolor: 'primary.main',
-          color: 'white',
-          py: 2,
-          px: 3,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1
-        }}
-      >
+    <Card elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+      <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 2, px: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
         <PersonIcon />
         <Typography variant='h6' component='h2' fontWeight={600}>
           Thông Tin Cá Nhân
@@ -107,37 +117,14 @@ export default function ProfileInformation({
       </Box>
 
       <CardContent sx={{ p: 3 }}>
-        <Box
-          component='form'
-          onSubmit={handleSubmit}
-          noValidate
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 3
-          }}
-        >
+        <Box component='form' onSubmit={handleSubmit} noValidate sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {/* Avatar */}
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              mb: 2
-            }}
-          >
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
             <Box sx={{ position: 'relative' }}>
               <Avatar
                 src={previewUrl || avatarUrl}
                 alt='Ảnh đại diện'
-                sx={{
-                  width: 120,
-                  height: 120,
-                  mb: 2,
-                  border: '4px solid',
-                  borderColor: 'primary.light',
-                  boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
-                }}
+                sx={{ width: 120, height: 120, mb: 2, border: '4px solid', borderColor: 'primary.light', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}
               />
               {isEditing && (
                 <Button
@@ -145,15 +132,7 @@ export default function ProfileInformation({
                   component='label'
                   size='small'
                   color='primary'
-                  sx={{
-                    position: 'absolute',
-                    bottom: 10,
-                    right: -10,
-                    minWidth: 'auto',
-                    width: 36,
-                    height: 36,
-                    borderRadius: '50%'
-                  }}
+                  sx={{ position: 'absolute', bottom: 10, right: -10, minWidth: 'auto', width: 36, height: 36, borderRadius: '50%' }}
                 >
                   <CameraAltIcon fontSize='small' />
                   <input type='file' hidden accept='image/*' onChange={handleAvatarChange} />
@@ -201,14 +180,7 @@ export default function ProfileInformation({
                 <Button variant='outlined' onClick={handleCancelEdit} size='medium' startIcon={<CancelIcon />}>
                   Hủy
                 </Button>
-                <Button 
-                  type='submit' 
-                  variant='contained' 
-                  color='primary' 
-                  disabled={isUpdatingProfile || isUpdatingAvatar} 
-                  size='medium' 
-                  startIcon={<SaveIcon />}
-                >
+                <Button type='submit' variant='contained' color='primary' disabled={isUpdatingProfile || isUpdatingAvatar} size='medium' startIcon={<SaveIcon />}>
                   {isUpdatingProfile || isUpdatingAvatar ? 'Đang Lưu...' : 'Lưu'}
                 </Button>
               </>
@@ -219,4 +191,3 @@ export default function ProfileInformation({
     </Card>
   )
 }
-

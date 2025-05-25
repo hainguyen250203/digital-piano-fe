@@ -1,5 +1,6 @@
 import { CreateAddressPayload, ResponseAddress } from '@/types/address.type'
-import { Box, Button, Card, CardContent, Divider, FormControl, FormControlLabel, Grid, InputLabel, MenuItem, Radio, Select, TextField, Typography } from '@mui/material'
+import { Box, Button, Card, CardContent, Divider, FormControl, FormControlLabel, InputLabel, MenuItem, Radio, Select, Typography } from '@mui/material'
+import AddressForm from './AddressForm'
 
 interface AddressSectionProps {
   addresses: ResponseAddress[]
@@ -50,12 +51,32 @@ export default function AddressSection({
               >
                 {addresses.map(address => (
                   <MenuItem key={address.id} value={address.id}>
-                    <Box>
-                      <Typography variant='body1'>{address.fullName}</Typography>
-                      <Typography variant='body2'>
+                    <Box sx={{ 
+                      width: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 0.5
+                    }}>
+                      <Typography variant='body1' fontWeight={500}>
+                        {address.fullName}
+                      </Typography>
+                      <Typography 
+                        variant='body2' 
+                        color='text.secondary'
+                        sx={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          wordBreak: 'break-word'
+                        }}
+                      >
                         {address.street}, {address.ward}, {address.district}, {address.city}
                       </Typography>
-                      <Typography variant='body2'>Điện thoại: {address.phone}</Typography>
+                      <Typography variant='body2' color='text.secondary'>
+                        Điện thoại: {address.phone}
+                      </Typography>
                     </Box>
                   </MenuItem>
                 ))}
@@ -77,74 +98,18 @@ export default function AddressSection({
         </Box>
 
         {useNewAddress && (
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField 
-                fullWidth 
-                label='Họ và tên' 
-                variant='outlined' 
-                required 
-                value={addressForm.fullName} 
-                onChange={onAddressChange('fullName')} 
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField 
-                fullWidth 
-                label='Số điện thoại' 
-                variant='outlined' 
-                required 
-                value={addressForm.phone} 
-                onChange={onAddressChange('phone')} 
-              />
-            </Grid>
-            <Grid size={{ xs: 12 }}>
-              <TextField 
-                fullWidth 
-                label='Địa chỉ' 
-                variant='outlined' 
-                required 
-                value={addressForm.street} 
-                onChange={onAddressChange('street')} 
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField 
-                fullWidth 
-                label='Phường/Xã' 
-                variant='outlined' 
-                required 
-                value={addressForm.ward} 
-                onChange={onAddressChange('ward')} 
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField 
-                fullWidth 
-                label='Quận/Huyện' 
-                variant='outlined' 
-                required 
-                value={addressForm.district} 
-                onChange={onAddressChange('district')} 
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField 
-                fullWidth 
-                label='Tỉnh/Thành phố' 
-                variant='outlined' 
-                required 
-                value={addressForm.city} 
-                onChange={onAddressChange('city')} 
-              />
-            </Grid>
-            <Grid size={12}>
+          <Box sx={{ mt: 1 }}>
+            <AddressForm 
+              addressForm={addressForm}
+              onAddressChange={onAddressChange}
+            />
+            <Box sx={{ mt: 2 }}>
               <FormControlLabel 
                 control={<Radio checked={addressForm.isDefault} onChange={onToggleDefault} />} 
                 label='Đặt làm địa chỉ mặc định' 
               />
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         )}
       </CardContent>
     </Card>

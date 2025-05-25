@@ -4,35 +4,29 @@ import { useFetchCreateAddress, useFetchDeleteAddress, useFetchSetDefaultAddress
 import { CreateAddressPayload, ResponseAddress, UpdateAddressPayload } from '@/types/address.type'
 import { BaseResponse } from '@/types/base-response'
 import AddIcon from '@mui/icons-material/Add'
-import CancelIcon from '@mui/icons-material/Cancel'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import HomeIcon from '@mui/icons-material/Home'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
-import SaveIcon from '@mui/icons-material/Save'
 import {
-    Alert,
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    IconButton,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TablePagination,
-    TableRow,
-    TextField,
-    Tooltip,
-    Typography
+  Alert,
+  Box,
+  Button,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
+  Tooltip,
+  Typography
 } from '@mui/material'
 import React, { useMemo, useState } from 'react'
+import AddressForm from '../address/AddressForm'
 
 interface AddressSectionProps {
   addressData: BaseResponse<ResponseAddress[]> | undefined
@@ -40,24 +34,11 @@ interface AddressSectionProps {
 }
 
 export default function AddressSection({ addressData, addressRefetch }: AddressSectionProps) {
-  // Address state
   const [openAddressDialog, setOpenAddressDialog] = useState(false)
   const [currentAddress, setCurrentAddress] = useState<ResponseAddress | null>(null)
-  const [addressFormData, setAddressFormData] = useState({
-    fullName: '',
-    phone: '',
-    street: '',
-    ward: '',
-    district: '',
-    city: '',
-    isDefault: false
-  })
-  
-  // Pagination state
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(3)
 
-  // Address mutations
   const { mutate: createAddress, isPending: isCreatingAddress } = useFetchCreateAddress({
     onSuccess: () => {
       addressRefetch()
@@ -96,30 +77,8 @@ export default function AddressSection({ addressData, addressRefetch }: AddressS
     }
   })
 
-  // Address handlers
   const handleOpenAddressDialog = (address: ResponseAddress | null = null) => {
     setCurrentAddress(address)
-    if (address) {
-      setAddressFormData({
-        fullName: address.fullName || '',
-        phone: address.phone || '',
-        street: address.street || '',
-        ward: address.ward || '',
-        district: address.district || '',
-        city: address.city || '',
-        isDefault: address.isDefault || false
-      })
-    } else {
-      setAddressFormData({
-        fullName: '',
-        phone: '',
-        street: '',
-        ward: '',
-        district: '',
-        city: '',
-        isDefault: false
-      })
-    }
     setOpenAddressDialog(true)
   }
 
@@ -128,23 +87,14 @@ export default function AddressSection({ addressData, addressRefetch }: AddressS
     setCurrentAddress(null)
   }
 
-  const handleAddressInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setAddressFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-  }
-
-  const handleSaveAddress = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSaveAddress = (data: CreateAddressPayload | UpdateAddressPayload) => {
     if (currentAddress) {
       updateAddress({
         id: currentAddress.id,
-        ...addressFormData
+        ...data
       } as UpdateAddressPayload)
     } else {
-      createAddress(addressFormData as CreateAddressPayload)
+      createAddress(data as CreateAddressPayload)
     }
   }
 
@@ -156,7 +106,6 @@ export default function AddressSection({ addressData, addressRefetch }: AddressS
     setDefaultAddress(id)
   }
   
-  // Pagination handlers
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage)
   }
@@ -166,7 +115,6 @@ export default function AddressSection({ addressData, addressRefetch }: AddressS
     setPage(0)
   }
 
-  // Get addresses array safely
   const addresses = useMemo(() => addressData?.data || [], [addressData])
 
   return (
@@ -231,15 +179,21 @@ export default function AddressSection({ addressData, addressRefetch }: AddressS
           </Box>
         ) : (
           <>
-            <TableContainer>
+            <TableContainer sx={{ 
+              maxWidth: '100%',
+              overflowX: 'auto',
+              '& .MuiTable-root': {
+                minWidth: 650
+              }
+            }}>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Họ tên</TableCell>
-                    <TableCell>Địa chỉ</TableCell>
-                    <TableCell>Điện thoại</TableCell>
-                    <TableCell>Trạng thái</TableCell>
-                    <TableCell>Thao tác</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Họ tên</TableCell>
+                    <TableCell sx={{ minWidth: 300 }}>Địa chỉ</TableCell>
+                    <TableCell sx={{ minWidth: 120 }}>Điện thoại</TableCell>
+                    <TableCell sx={{ minWidth: 150 }}>Trạng thái</TableCell>
+                    <TableCell sx={{ minWidth: 100 }}>Thao tác</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -250,8 +204,28 @@ export default function AddressSection({ addressData, addressRefetch }: AddressS
                         bgcolor: address.isDefault ? 'primary.50' : 'transparent'
                       }}>
                         <TableCell>{address.fullName}</TableCell>
-                        <TableCell sx={{ maxWidth: 250, whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                          {address.street}, {address.ward}, {address.district}, {address.city}
+                        <TableCell>
+                          <Box sx={{ 
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 0.5,
+                            minWidth: 300
+                          }}>
+                            <Typography variant='body2' sx={{ 
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}>
+                              {address.street}
+                            </Typography>
+                            <Typography variant='body2' color='text.secondary' sx={{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}>
+                              {address.ward}, {address.district}, {address.city}
+                            </Typography>
+                          </Box>
                         </TableCell>
                         <TableCell>{address.phone}</TableCell>
                         <TableCell>
@@ -326,87 +300,14 @@ export default function AddressSection({ addressData, addressRefetch }: AddressS
         )}
       </Paper>
 
-      {/* Address Dialog */}
-      <Dialog open={openAddressDialog} onClose={handleCloseAddressDialog} maxWidth='sm' fullWidth>
-        <DialogTitle>
-          {currentAddress ? 'Chỉnh Sửa Địa Chỉ' : 'Thêm Địa Chỉ Mới'}
-        </DialogTitle>
-        <DialogContent>
-          <form onSubmit={handleSaveAddress}>
-            <Box sx={{ mt: 2, display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' } }}>
-              <TextField
-                label='Họ và tên'
-                name='fullName'
-                fullWidth
-                required
-                value={addressFormData.fullName}
-                onChange={handleAddressInputChange}
-              />
-              <TextField
-                label='Số điện thoại'
-                name='phone'
-                fullWidth
-                required
-                value={addressFormData.phone}
-                onChange={handleAddressInputChange}
-              />
-              <TextField
-                label='Địa chỉ'
-                name='street'
-                fullWidth
-                required
-                value={addressFormData.street}
-                onChange={handleAddressInputChange}
-                sx={{ gridColumn: '1 / -1' }}
-              />
-              <TextField
-                label='Phường/Xã'
-                name='ward'
-                fullWidth
-                required
-                value={addressFormData.ward}
-                onChange={handleAddressInputChange}
-              />
-              <TextField
-                label='Quận/Huyện'
-                name='district'
-                fullWidth
-                required
-                value={addressFormData.district}
-                onChange={handleAddressInputChange}
-              />
-              <TextField
-                label='Tỉnh/Thành phố'
-                name='city'
-                fullWidth
-                required
-                value={addressFormData.city}
-                onChange={handleAddressInputChange}
-                sx={{ gridColumn: '1 / -1' }}
-              />
-            </Box>
-          </form>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button
-            variant='outlined'
-            color='inherit'
-            onClick={handleCloseAddressDialog}
-            startIcon={<CancelIcon />}
-          >
-            Hủy
-          </Button>
-          <Button
-            variant='contained'
-            color='primary'
-            onClick={handleSaveAddress}
-            disabled={isCreatingAddress || isUpdatingAddress}
-            startIcon={<SaveIcon />}
-          >
-            {currentAddress ? 'Cập Nhật' : 'Lưu'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <AddressForm
+        open={openAddressDialog}
+        onClose={handleCloseAddressDialog}
+        onSubmit={handleSaveAddress}
+        initialData={currentAddress || undefined}
+        isSubmitting={isCreatingAddress || isUpdatingAddress}
+        title={currentAddress ? 'Chỉnh Sửa Địa Chỉ' : 'Thêm Địa Chỉ Mới'}
+      />
     </>
   )
 }

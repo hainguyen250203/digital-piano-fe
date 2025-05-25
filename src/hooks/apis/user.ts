@@ -9,7 +9,7 @@ export { Role };
 export interface UserData {
   id: string;
   email: string;
-  phoneNumber: string;
+  phoneNumber: string | undefined;
   avatarUrl: string;
   role: Role;
   isBlock: boolean;
