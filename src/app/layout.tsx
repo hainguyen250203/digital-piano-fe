@@ -2,6 +2,7 @@
 
 import MainLayout from '@/components/layout/MainLayout'
 import AppProviders from '@/components/providers/AppProviders'
+import { Analytics } from '@vercel/analytics/next'
 import { Inter } from 'next/font/google'
 import Script from 'next/script'
 import { ReactNode } from 'react'
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps) {
           <MainLayout>{children}</MainLayout>
         </AppProviders>
         <Script src='https://cdn.fchat.vn/assets/embed/webchat.js?id=682e9b63967c00bb1a0f8746' strategy='afterInteractive' />
+        <Analytics />
       </body>
     </html>
   )
