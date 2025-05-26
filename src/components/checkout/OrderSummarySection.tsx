@@ -1,6 +1,6 @@
 import { formatCurrency } from '@/utils/format'
 import ClearIcon from '@mui/icons-material/Clear'
-import { Box, Button, Card, CardContent, Divider, IconButton, InputAdornment, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, Card, CardContent, CircularProgress, Divider, IconButton, InputAdornment, Stack, TextField, Typography } from '@mui/material'
 
 interface OrderSummarySectionProps {
   cartSubtotal: number
@@ -41,12 +41,12 @@ export default function OrderSummarySection({
             variant='outlined'
             value={discountCode}
             onChange={e => onDiscountCodeChange(e.target.value)}
-            disabled={!!discountAmount}
+            disabled={!!discountAmount || isLoadingDiscount}
             InputProps={{
               endAdornment: (
                 <InputAdornment position='end'>
                   {discountAmount ? (
-                    <IconButton onClick={onRemoveDiscount}>
+                    <IconButton onClick={onRemoveDiscount} disabled={isLoadingDiscount}>
                       <ClearIcon />
                     </IconButton>
                   ) : (
@@ -55,8 +55,9 @@ export default function OrderSummarySection({
                       size='small' 
                       onClick={onApplyDiscount} 
                       disabled={isLoadingDiscount || !discountCode}
+                      startIcon={isLoadingDiscount ? <CircularProgress size={16} color="inherit" /> : null}
                     >
-                      Áp dụng
+                      {isLoadingDiscount ? 'Đang áp dụng...' : 'Áp dụng'}
                     </Button>
                   )}
                 </InputAdornment>

@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 export interface ProfileResponse {
   email: string;
   avatarUrl: string;
-  phoneNumber: string;
+  phoneNumber: string | undefined;
   role: string;
 }
 
@@ -26,7 +26,7 @@ export const useFetchCurrentUserProfile = () => {
 
 // Update user avatar
 export const useFetchUpdateAvatar = (options?: {
-  onSuccess?: (data: BaseResponse<ProfileResponse>) => void;
+  onSuccess?: (data: BaseResponse<UserData>) => void;
   onError?: (error: BaseResponse<null>) => void;
 }) => {
   const queryClient = useQueryClient();

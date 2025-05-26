@@ -52,7 +52,7 @@ export default function UserList() {
     if (!searchQuery.trim()) return users
 
     const query = searchQuery.toLowerCase()
-    return users.filter((user: UserData) => user.email.toLowerCase().includes(query) || user.phoneNumber.includes(query))
+    return users.filter((user: UserData) => user.email.toLowerCase().includes(query) || (user.phoneNumber && user.phoneNumber.includes(query)))
   }, [userResponse?.data, searchQuery])
 
   // Block/unblock user mutation

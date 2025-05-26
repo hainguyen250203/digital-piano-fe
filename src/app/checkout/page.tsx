@@ -8,7 +8,7 @@ import ProductsSection from '@/components/checkout/ProductsSection'
 import { useFetchAddressList } from '@/hooks/apis/address'
 import { useFetchGetCart } from '@/hooks/apis/cart'
 import { useCheckout } from '@/hooks/useCheckout'
-import { Box, Button, Card, CardContent, Divider, Grid, TextField, Typography } from '@mui/material'
+import { Box, Button, Card, CardContent, CircularProgress, Divider, Grid, TextField, Typography } from '@mui/material'
 
 export default function CheckoutPage() {
   const { data: cartData } = useFetchGetCart()
@@ -118,6 +118,7 @@ export default function CheckoutPage() {
               fontSize: '1.1rem'
             }}
             onClick={handleCheckout}
+            startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
           >
             {isSubmitting ? 'Đang xử lý...' : 'Đặt Hàng'}
           </Button>

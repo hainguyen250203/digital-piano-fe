@@ -6,7 +6,7 @@ import { useAddToWishlist } from '@/hooks/apis/wishlist'
 import { QueryKey } from '@/models/QueryKey'
 import { formatCurrency } from '@/utils/format'
 import { AddShoppingCart, Favorite } from '@mui/icons-material'
-import { alpha, Badge, Box, Card, CardContent, Chip, IconButton, styled, Tooltip, Typography } from '@mui/material'
+import { alpha, Badge, Box, Card, CardContent, Chip, CircularProgress, IconButton, styled, Tooltip, Typography } from '@mui/material'
 import { useQueryClient } from '@tanstack/react-query'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -191,7 +191,6 @@ export default function ProductItem({ product }: ProductItemProps) {
   })
   const { mutate: addToCart, isPending: isAddingToCart } = useFetchAddToCart({
     onSuccess: () => {
-      toast.success('Đã thêm vào giỏ hàng', { position: 'top-center' })
       queryClient.invalidateQueries({ queryKey: [QueryKey.GET_CART] })
     },
     onError: error => {
@@ -268,9 +267,9 @@ export default function ProductItem({ product }: ProductItemProps) {
           )}
 
           {/* Add to Cart & Wishlist buttons with improved tooltips */}
-          <IconButtonContainer className='action-buttons' sx={{ opacity: hovered ? 1 : 0 }}>
+          <IconButtonContainer className='action-buttons' sx={{ opacity: hovered || isAddingToCart || isAddingToWishlist ? 1 : 0 }}>
             {/* Add to Cart Button */}
-            <Tooltip title={isOutOfStock ? 'Hết Hàng' : 'Thêm Vào Giỏ'} placement='left' arrow enterDelay={500} leaveDelay={200}>
+            <Tooltip title={isOutOfStock ? 'Hết Hàng' : isAddingToCart ? 'Đang thêm vào giỏ...' : 'Thêm Vào Giỏ'} placement='left' arrow enterDelay={500} leaveDelay={200}>
               <span>
                 <ActionIconButton
                   size='small'
@@ -278,32 +277,38 @@ export default function ProductItem({ product }: ProductItemProps) {
                   sx={{
                     '&:hover': {
                       bgcolor: theme => alpha(theme.palette.primary.main, 0.1)
-                    }
+                    },
+                    ...(isAddingToCart && {
+                      bgcolor: theme => alpha(theme.palette.primary.main, 0.1)
+                    })
                   }}
                   disabled={isOutOfStock || isAddingToCart}
                   onClick={handleAddToCart}
                   aria-label='Add to cart'
                 >
-                  <AddShoppingCart fontSize='small' color={isOutOfStock ? 'disabled' : 'primary'} />
+                  {isAddingToCart ? <CircularProgress size={20} color='primary' /> : <AddShoppingCart fontSize='small' color={isOutOfStock ? 'disabled' : 'primary'} />}
                 </ActionIconButton>
               </span>
             </Tooltip>
 
             {/* Add to Wishlist Button */}
-            <Tooltip title='Thêm Vào Yêu Thích' placement='left' arrow enterDelay={500} leaveDelay={200}>
+            <Tooltip title={isAddingToWishlist ? 'Đang thêm vào yêu thích...' : 'Thêm Vào Yêu Thích'} placement='left' arrow enterDelay={500} leaveDelay={200}>
               <ActionIconButton
                 size='small'
                 color='default'
                 sx={{
                   '&:hover': {
                     bgcolor: theme => alpha(theme.palette.error.main, 0.1)
-                  }
+                  },
+                  ...(isAddingToWishlist && {
+                    bgcolor: theme => alpha(theme.palette.error.main, 0.1)
+                  })
                 }}
                 onClick={handleAddToWishlist}
                 aria-label='Add to wishlist'
                 disabled={isAddingToWishlist}
               >
-                <Favorite fontSize='small' color={hovered ? 'error' : 'action'} />
+                {isAddingToWishlist ? <CircularProgress size={20} color='error' /> : <Favorite fontSize='small' color={hovered ? 'error' : 'action'} />}
               </ActionIconButton>
             </Tooltip>
           </IconButtonContainer>

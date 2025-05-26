@@ -7,7 +7,7 @@ import { formatCurrency } from '@/utils/format'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import RemoveIcon from '@mui/icons-material/Remove'
-import { alpha, Box, IconButton, Link, Stack, Typography, useTheme } from '@mui/material'
+import { alpha, Box, CircularProgress, IconButton, Link, Stack, Typography, useTheme } from '@mui/material'
 import { useQueryClient } from '@tanstack/react-query'
 import Image from 'next/image'
 import { toast } from 'react-toastify'
@@ -76,9 +76,27 @@ const CartItem = ({ item }: CartItemProps) => {
         '&:hover': {
           bgcolor: alpha(theme.palette.background.default, 0.7),
           borderColor: theme.palette.divider
-        }
+        },
+        ...(isDeleting && {
+          opacity: 0.7,
+          bgcolor: alpha(theme.palette.background.default, 0.5)
+        })
       }}
     >
+      {isDeleting && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 5
+          }}
+        >
+          <CircularProgress color="error" size={40} />
+        </Box>
+      )}
+      
       {/* Product Image */}
       <Box
         sx={{
@@ -173,7 +191,7 @@ const CartItem = ({ item }: CartItemProps) => {
             <IconButton
               size='small'
               onClick={() => handleUpdateQuantity(item.quantity - 1)}
-              disabled={isUpdating}
+              disabled={isUpdating || isDeleting}
               sx={{
                 border: '1px solid',
                 borderColor: 'divider',
@@ -194,18 +212,23 @@ const CartItem = ({ item }: CartItemProps) => {
                 borderLeft: 0,
                 borderRight: 0,
                 width: 36,
-                height: 30
+                height: 30,
+                position: 'relative'
               }}
             >
-              <Typography variant='body2' sx={{ fontWeight: 600 }}>
-                {item.quantity}
-              </Typography>
+              {isUpdating ? (
+                <CircularProgress size={16} color="primary" />
+              ) : (
+                <Typography variant='body2' sx={{ fontWeight: 600 }}>
+                  {item.quantity}
+                </Typography>
+              )}
             </Box>
 
             <IconButton
               size='small'
               onClick={() => handleUpdateQuantity(item.quantity + 1)}
-              disabled={isUpdating}
+              disabled={isUpdating || isDeleting}
               sx={{
                 border: '1px solid',
                 borderColor: 'divider',
@@ -232,7 +255,7 @@ const CartItem = ({ item }: CartItemProps) => {
       {/* Remove Button */}
       <IconButton
         size='small'
-        disabled={isDeleting}
+        disabled={isDeleting || isUpdating}
         onClick={handleRemoveItem}
         sx={{
           'position': 'absolute',
@@ -243,10 +266,17 @@ const CartItem = ({ item }: CartItemProps) => {
           '&:hover': {
             color: theme.palette.error.main,
             bgcolor: alpha(theme.palette.error.light, 0.1)
-          }
+          },
+          ...(isDeleting && {
+            bgcolor: alpha(theme.palette.error.light, 0.1)
+          })
         }}
       >
-        <DeleteOutlineIcon fontSize='small' />
+        {isDeleting ? (
+          <CircularProgress size={16} color="error" />
+        ) : (
+          <DeleteOutlineIcon fontSize='small' />
+        )}
       </IconButton>
     </Box>
   )

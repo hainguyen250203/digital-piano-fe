@@ -1,5 +1,6 @@
 'use client'
 
+import ProductDetailSkeleton from '@/components/Product/ProductDetailSkeleton'
 import ProductItem from '@/components/Product/ProductItem'
 import { useFetchAddToCart } from '@/hooks/apis/cart'
 import { ProductDetailData, useFetchProductDetail, useFetchProductRelated } from '@/hooks/apis/product'
@@ -22,7 +23,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const { data: productData, isLoading, error } = useFetchProductDetail(productId)
   const { data: relatedProducts } = useFetchProductRelated(productId)
   const queryClient = useQueryClient()
-  const { mutate: addToWishlist } = useAddToFavorite({
+  const { mutate: addToWishlist, isPending: isAddingToWishlist } = useAddToFavorite({
     onSuccess: () => {
       toast.success('Đã thêm vào yêu thích', { position: 'top-center' })
       queryClient.invalidateQueries({ queryKey: [QueryKey.WISHLIST_LIST] })
@@ -31,7 +32,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       toast.error(error.message, { position: 'top-center' })
     }
   })
-  const { mutate: addToCart } = useFetchAddToCart({
+  const { mutate: addToCart, isPending: isAddingToCart } = useFetchAddToCart({
     onSuccess: () => {
       toast.success('Đã thêm vào giỏ hàng', { position: 'top-center' })
       queryClient.invalidateQueries({ queryKey: [QueryKey.GET_CART] })
@@ -106,11 +107,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   // Display loading state
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh' }}>
-        <CircularProgress size={60} thickness={4} color='primary' />
-      </Box>
-    )
+    return <ProductDetailSkeleton />
   }
 
   // Display error state
@@ -483,22 +480,24 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <Button
                 variant='contained'
                 size='large'
-                onClick={() => addToCart({ productId: productId })}
-                startIcon={<AddShoppingCart />}
-                disabled={isOutOfStock}
+                startIcon={isAddingToCart ? <CircularProgress size={20} color="inherit" /> : <AddShoppingCart />}
                 fullWidth
                 sx={{
-                  py: 1.5,
+                  p: { xs: 1.5, md: 2 },
+                  fontSize: '1rem',
                   textTransform: 'none',
-                  fontWeight: 600
+                  fontWeight: 600,
+                  mb: 2
                 }}
+                disabled={isOutOfStock || isAddingToCart}
+                onClick={() => addToCart({ productId: product.id })}
               >
-                Thêm vào giỏ hàng
+                {isAddingToCart ? 'Đang thêm vào giỏ hàng...' : 'Thêm Vào Giỏ Hàng'}
               </Button>
               <Button
                 variant='outlined'
                 size='large'
-                startIcon={<Favorite />}
+                startIcon={isAddingToWishlist ? <CircularProgress size={20} color="error" /> : <Favorite />}
                 fullWidth
                 sx={{
                   py: 1.5,
@@ -506,8 +505,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   fontWeight: 600
                 }}
                 onClick={handleAddToFavorites}
+                disabled={isAddingToWishlist}
               >
-                Thêm vào yêu thích
+                {isAddingToWishlist ? 'Đang thêm vào yêu thích...' : 'Thêm vào yêu thích'}
               </Button>
             </Stack>
 
