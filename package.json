@@ -16,6 +16,7 @@
     "@mui/icons-material": "^7.0.2",
     "@mui/material": "^7.0.2",
     "@mui/material-nextjs": "^7.0.2",
+    "@mui/x-charts": "^8.4.0",
     "@mui/x-date-pickers": "^8.2.0",
     "@tanstack/react-query": "^5.74.7",
     "@vercel/analytics": "^1.5.0",
@@ -32,6 +33,7 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "vietnam-provinces": "^0.0.4",
+    "xlsx": "^0.18.5",
     "zustand": "^5.0.4"
   },
   "devDependencies": {

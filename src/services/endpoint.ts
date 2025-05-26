@@ -154,6 +154,15 @@ export const Endpoint = () => {
       markAsRead: (id: string) => `${BASE_URL}/notifications/${id}/mark-as-read`,
       markAllAsRead: `${BASE_URL}/notifications/mark-all-as-read`,
     },
+
+    statistics: {
+      sales: `${BASE_URL}/statistical/sales`,
+      products: `${BASE_URL}/statistical/products`,
+      users: `${BASE_URL}/statistical/users`,
+      revenue: `${BASE_URL}/statistical/revenue`,
+      stock: `${BASE_URL}/statistical/stock`,
+      dashboard: `${BASE_URL}/statistical/dashboard`,
+    },
   };
 };
 
