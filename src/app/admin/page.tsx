@@ -5,6 +5,7 @@ import ProductStatistics from '@/components/admin/dashboard/ProductStatistics'
 import RevenueStatistics from '@/components/admin/dashboard/RevenueStatistics'
 import SalesStatistics from '@/components/admin/dashboard/SalesStatistics'
 import StockStatistics from '@/components/admin/dashboard/StockStatistics'
+import UserStatistics from '@/components/admin/dashboard/UserStatistics'
 import { Box, Paper, Tab, Tabs, Typography } from '@mui/material'
 import { useState } from 'react'
 
@@ -47,6 +48,7 @@ export default function AdminDashboardPage() {
           <Tab label='Sản Phẩm' />
           <Tab label='Doanh Thu' />
           <Tab label='Kho Hàng' />
+          <Tab label='Người Dùng' />
         </Tabs>
 
         {/* Sales Tab */}
@@ -67,6 +69,11 @@ export default function AdminDashboardPage() {
         {/* Inventory Tab */}
         <TabPanel value={tabValue} index={3}>
           <StockStatistics />
+        </TabPanel>
+
+        {/* Users Tab */}
+        <TabPanel value={tabValue} index={4}>
+          <UserStatistics />
         </TabPanel>
       </Paper>
     </Box>

@@ -1,30 +1,30 @@
 import { QueryKey } from "@/models/QueryKey";
 import { FetchGetDashboardStatistics, FetchGetProductStatistics, FetchGetRevenueStatistics, FetchGetSalesStatistics, FetchGetStockStatistics, FetchGetUserStatistics } from "@/services/apis/statistics";
-import { ReqProductStatistics, ReqRevenueStatistics, ReqSalesStatistics, ReqStockStatistics, ReqUserStatistics, StockSortType, TimePeriod } from "@/types/statistics.type";
+import { ReqProductStatistics, ReqRevenueStatistics, ReqSalesStatistics, ReqStockStatistics, ReqUserStatistics, StockSortType } from "@/types/statistics.type";
 import { useQuery } from "@tanstack/react-query";
 
-export const useFetchGetSalesStatistics = (params: ReqSalesStatistics = { period: TimePeriod.MONTH }) => {
+export const useFetchGetSalesStatistics = (params: ReqSalesStatistics = {}) => {
   return useQuery({
     queryKey: [QueryKey.GET_SALES_STATISTICS, params],
     queryFn: () => FetchGetSalesStatistics(params),
   });
 };
 
-export const useFetchGetProductStatistics = (params: ReqProductStatistics = { period: TimePeriod.MONTH }) => {
+export const useFetchGetProductStatistics = (params: ReqProductStatistics = {}) => {
   return useQuery({
     queryKey: [QueryKey.GET_PRODUCT_STATISTICS, params],
     queryFn: () => FetchGetProductStatistics(params),
   });
 };
 
-export const useFetchGetUserStatistics = (params: ReqUserStatistics = { period: TimePeriod.MONTH }) => {
+export const useFetchGetUserStatistics = (params: ReqUserStatistics = {}) => {
   return useQuery({
     queryKey: [QueryKey.GET_USER_STATISTICS, params],
     queryFn: () => FetchGetUserStatistics(params),
   });
 };
 
-export const useFetchGetRevenueStatistics = (params: ReqRevenueStatistics = { period: TimePeriod.MONTH }) => {
+export const useFetchGetRevenueStatistics = (params: ReqRevenueStatistics = {}) => {
   return useQuery({
     queryKey: [QueryKey.GET_REVENUE_STATISTICS, params],
     queryFn: () => FetchGetRevenueStatistics(params),
