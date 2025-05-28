@@ -8,7 +8,10 @@ export const fetchCreateReview = async (payload: CreateReviewPayload) => {
 };
 
 export const fetchUpdateReview = async (payload: EditReviewPayload) => {
-  const response = await API.put(Endpoint().review.update(payload.id), payload);
+  const response = await API.put(Endpoint().review.update(payload.id), {
+    rating: payload.rating,
+    content: payload.content
+  });
   return response.data;
 };
 

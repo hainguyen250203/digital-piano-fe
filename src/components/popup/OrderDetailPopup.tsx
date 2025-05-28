@@ -50,7 +50,8 @@ import {
   useTheme
 } from '@mui/material'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { toast } from 'react-toastify'
 
 interface OrderDetailPopupProps {
   open: boolean
@@ -74,37 +75,54 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
   const [reviewForm, setReviewForm] = useState<ReviewFormData | null>(null)
   const [isEditMode, setIsEditMode] = useState(false)
 
-  const { mutate: getOrderDetail, data: orderResponse, isPending } = useFetchGetOrderDetailByUserId()
+  // API hooks with proper error handling
+  const {
+    mutate: getOrderDetail,
+    data: orderResponse,
+    isPending
+  } = useFetchGetOrderDetailByUserId({
+    onError: error => {
+      toast.error(error?.message || 'Không thể tải thông tin đơn hàng')
+    }
+  })
+
   const { mutate: createReview, isPending: isCreatingReview } = useFetchCreateReview({
     onSuccess: () => {
-      // Refetch order details to get updated reviews
+      toast.success('Đánh giá đã được gửi thành công')
       if (orderId) getOrderDetail(orderId)
       setReviewForm(null)
+    },
+    onError: error => {
+      toast.error(error?.message || 'Gửi đánh giá thất bại')
     }
   })
 
   const { mutate: updateReview, isPending: isUpdatingReview } = useFetchUpdateReview({
     onSuccess: () => {
-      // Refetch order details to get updated reviews
       if (orderId) getOrderDetail(orderId)
       setReviewForm(null)
       setIsEditMode(false)
+    },
+    onError: error => {
+      toast.error(error?.message || 'Cập nhật đánh giá thất bại')
     }
   })
 
-  const { mutate: deleteReview } = useFetchDeleteReview({
+  const { mutate: deleteReview, isPending: isDeletingReview } = useFetchDeleteReview({
     onSuccess: () => {
-      // Refetch order details to get updated reviews
       if (orderId) getOrderDetail(orderId)
+    },
+    onError: error => {
+      toast.error(error?.message || 'Xóa đánh giá thất bại')
     }
   })
 
   // Fetch order details when orderId changes
   useEffect(() => {
-    if (orderId) {
+    if (orderId && open) {
       getOrderDetail(orderId)
     }
-  }, [orderId, getOrderDetail])
+  }, [orderId, getOrderDetail, open])
 
   // Reset form state when loading new order data
   useEffect(() => {
@@ -117,23 +135,22 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
   // Get the actual order data from the response
   const orderData = orderResponse?.data
 
-  const activeStep = getOrderStep(orderData?.orderStatus)
+  // Memoize derived values
+  const activeStep = useMemo(() => getOrderStep(orderData?.orderStatus), [orderData?.orderStatus])
+  const subtotal = useMemo(() => calculateSubtotal(orderData?.items), [orderData?.items])
 
   // Order steps for the stepper
   const steps = ['Đã đặt hàng', 'Đang xử lý', 'Đang giao hàng', 'Đã giao hàng']
 
-  const handlePayAgain = () => {
+  // Review handlers
+  const handlePayAgain = useCallback(() => {
     if (onPayAgain && orderData) {
       onPayAgain(orderData.id)
       onClose()
     }
-  }
+  }, [onPayAgain, orderData, onClose])
 
-  // Calculate subtotal (before shipping and discounts)
-  const subtotal = calculateSubtotal(orderData?.items)
-
-  // Review handlers
-  const handleOpenReviewForm = (item: OrderItem) => {
+  const handleOpenReviewForm = useCallback((item: OrderItem) => {
     setReviewForm({
       orderItemId: item.id,
       productId: item.productId,
@@ -141,9 +158,9 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
       content: ''
     })
     setIsEditMode(false)
-  }
+  }, [])
 
-  const handleEditReview = (review: ProductReview) => {
+  const handleEditReview = useCallback((review: ProductReview) => {
     setReviewForm({
       id: review.id,
       orderItemId: review.orderItemId,
@@ -152,15 +169,18 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
       content: review.content
     })
     setIsEditMode(true)
-  }
+  }, [])
 
-  const handleDeleteReview = (reviewId: string) => {
-    if (confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
-      deleteReview({ id: reviewId })
-    }
-  }
+  const handleDeleteReview = useCallback(
+    (reviewId: string) => {
+      if (confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
+        deleteReview({ id: reviewId })
+      }
+    },
+    [deleteReview]
+  )
 
-  const handleSubmitReview = () => {
+  const handleSubmitReview = useCallback(() => {
     if (!reviewForm) return
 
     if (isEditMode && reviewForm.id) {
@@ -177,18 +197,45 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
         content: reviewForm.content
       })
     }
-  }
+  }, [reviewForm, isEditMode, updateReview, createReview])
 
-  const handleCancelReview = () => {
+  const handleCancelReview = useCallback(() => {
     setReviewForm(null)
     setIsEditMode(false)
-  }
+  }, [])
 
   // Find review for a specific order item
-  const findReviewForItem = (item: OrderItem) => {
+  const findReviewForItem = useCallback((item: OrderItem) => {
     if (!item.product?.reviews || !Array.isArray(item.product.reviews)) return null
     return item.product.reviews.find(review => review.orderItemId === item.id)
-  }
+  }, [])
+
+  // Check if review form should be shown for a specific item
+  const shouldShowReviewForm = useCallback(
+    (itemId: string) => {
+      return Boolean(reviewForm && reviewForm.orderItemId === itemId)
+    },
+    [reviewForm]
+  )
+
+  // Handle form field changes
+  const handleRatingChange = useCallback(
+    (newValue: number | null) => {
+      if (reviewForm) {
+        setReviewForm(prev => ({ ...prev!, rating: newValue || 1 }))
+      }
+    },
+    [reviewForm]
+  )
+
+  const handleContentChange = useCallback(
+    (content: string) => {
+      if (reviewForm) {
+        setReviewForm(prev => ({ ...prev!, content }))
+      }
+    },
+    [reviewForm]
+  )
 
   // Show loading state
   if (isPending) {
@@ -444,7 +491,6 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
               {Array.isArray(orderData.items) && orderData.items.length > 0 ? (
                 orderData.items.map((item: OrderItem) => {
                   const itemReview = findReviewForItem(item)
-                  const showReviewForm = reviewForm && reviewForm.orderItemId === item.id
 
                   return (
                     <Box key={item.id}>
@@ -488,7 +534,7 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
                       {/* Review section */}
                       {orderData.orderStatus === OrderStatus.DELIVERED && (
                         <Box sx={{ mt: 2, ml: { xs: 0, sm: 12 } }}>
-                          {itemReview ? (
+                          {itemReview && !shouldShowReviewForm(item.id) ? (
                             <Box
                               sx={{
                                 p: 2,
@@ -504,10 +550,10 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
                                   <Typography variant='subtitle2'>Đánh giá của bạn</Typography>
                                 </Box>
                                 <Box>
-                                  <IconButton size='small' onClick={() => handleEditReview(itemReview)}>
+                                  <IconButton size='small' onClick={() => handleEditReview(itemReview)} disabled={isDeletingReview}>
                                     <EditIcon fontSize='small' />
                                   </IconButton>
-                                  <IconButton size='small' onClick={() => handleDeleteReview(itemReview.id)}>
+                                  <IconButton size='small' onClick={() => handleDeleteReview(itemReview.id)} disabled={isDeletingReview}>
                                     <DeleteIcon fontSize='small' />
                                   </IconButton>
                                 </Box>
@@ -523,7 +569,7 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
                                 Đánh giá vào: {new Date(itemReview.createdAt).toLocaleDateString('vi-VN')}
                               </Typography>
                             </Box>
-                          ) : showReviewForm ? (
+                          ) : shouldShowReviewForm(item.id) ? (
                             <Box
                               sx={{
                                 p: 2,
@@ -538,10 +584,8 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
                               </Typography>
 
                               <Rating
-                                value={reviewForm.rating}
-                                onChange={(_, newValue) => {
-                                  setReviewForm(prev => ({ ...prev!, rating: newValue || 1 }))
-                                }}
+                                value={reviewForm?.rating || 5}
+                                onChange={(_, newValue) => handleRatingChange(newValue)}
                                 precision={1}
                                 emptyIcon={<StarBorderIcon fontSize='inherit' />}
                                 icon={<StarIcon fontSize='inherit' />}
@@ -552,8 +596,8 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
                                 multiline
                                 rows={3}
                                 placeholder='Nhập nội dung đánh giá của bạn'
-                                value={reviewForm.content}
-                                onChange={e => setReviewForm(prev => ({ ...prev!, content: e.target.value }))}
+                                value={reviewForm?.content || ''}
+                                onChange={e => handleContentChange(e.target.value)}
                                 size='small'
                                 margin='normal'
                               />
@@ -562,7 +606,7 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
                                 <Button variant='outlined' size='small' onClick={handleCancelReview}>
                                   Hủy
                                 </Button>
-                                <Button variant='contained' size='small' onClick={handleSubmitReview} disabled={!reviewForm.content || isCreatingReview || isUpdatingReview}>
+                                <Button variant='contained' size='small' onClick={handleSubmitReview} disabled={!reviewForm || !reviewForm.content || isCreatingReview || isUpdatingReview}>
                                   {isEditMode ? 'Cập nhật' : 'Gửi đánh giá'}
                                 </Button>
                               </Box>

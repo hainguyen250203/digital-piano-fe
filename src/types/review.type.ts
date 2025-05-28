@@ -8,8 +8,8 @@ export type CreateReviewPayload = {
 
 export type EditReviewPayload = {
   id: string;
-  rating: number;
-  content: string;
+  rating?: number;
+  content?: string;
 }
 
 export type DeleteReviewPayload = {
