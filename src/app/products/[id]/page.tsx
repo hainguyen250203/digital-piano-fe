@@ -2,18 +2,14 @@
 
 import ProductDetailSkeleton from '@/components/Product/ProductDetailSkeleton'
 import ProductItem from '@/components/Product/ProductItem'
-import { useFetchAddToCart } from '@/hooks/apis/cart'
+import { useCartWishlist } from '@/context/CartWishlistContext'
 import { ProductDetailData, useFetchProductDetail, useFetchProductRelated } from '@/hooks/apis/product'
-import { useAddToWishlist as useAddToFavorite } from '@/hooks/apis/wishlist'
-import { QueryKey } from '@/models/QueryKey'
 import { DescriptionBlock } from '@/types/product.type'
 import { formatCurrency } from '@/utils/format'
 import { AddShoppingCart, CheckCircle, ExpandMore, Favorite, LocalShipping, NavigateNext } from '@mui/icons-material'
 import { Box, Breadcrumbs, Button, Chip, CircularProgress, Divider, Grid, IconButton, Link, Paper, Stack, Typography, alpha, useMediaQuery, useTheme } from '@mui/material'
-import { useQueryClient } from '@tanstack/react-query'
 import Image from 'next/image'
 import React, { useEffect, useRef, useState } from 'react'
-import { toast } from 'react-toastify'
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const productId = React.use(params).id
@@ -22,31 +18,23 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const { data: productData, isLoading, error } = useFetchProductDetail(productId)
   const { data: relatedProducts } = useFetchProductRelated(productId)
-  const queryClient = useQueryClient()
-  const { mutate: addToWishlist, isPending: isAddingToWishlist } = useAddToFavorite({
-    onSuccess: () => {
-      toast.success('Đã thêm vào yêu thích', { position: 'top-center' })
-      queryClient.invalidateQueries({ queryKey: [QueryKey.WISHLIST_LIST] })
-    },
-    onError: error => {
-      toast.error(error.message, { position: 'top-center' })
-    }
-  })
-  const { mutate: addToCart, isPending: isAddingToCart } = useFetchAddToCart({
-    onSuccess: () => {
-      toast.success('Đã thêm vào giỏ hàng', { position: 'top-center' })
-      queryClient.invalidateQueries({ queryKey: [QueryKey.GET_CART] })
-    },
-    onError: error => {
-      if (error.errorCode === 4) toast.error('Vui lòng đăng nhập', { position: 'top-center' })
-      else toast.error(error.message, { position: 'top-center' })
-    }
-  })
+  
+  const { 
+    addToWishlist, 
+    addToCart, 
+    isAddingToWishlist, 
+    isAddingToCart,
+    isInWishlist
+  } = useCartWishlist()
+  
   const product = productData?.data
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [isVideoSelected, setIsVideoSelected] = useState(false)
   const [descriptionBlocks, setDescriptionBlocks] = useState<DescriptionBlock[]>([])
   const [showDescription, setShowDescription] = useState(false)
+  const isProductInWishlist = product ? isInWishlist(productId) : false
+  const isProductAddingToCart = isAddingToCart(productId)
+  const isProductAddingToWishlist = isAddingToWishlist(productId)
 
   // Refs for carousel scrolling
   const relatedProductsRef = useRef<HTMLDivElement>(null)
@@ -166,6 +154,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   const handleAddToFavorites = () => {
     addToWishlist(productId)
+  }
+
+  const handleAddToCart = () => {
+    if (product) {
+      addToCart({ productId })
+    }
   }
 
   return (
@@ -476,40 +470,62 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <Divider sx={{ my: 3 }} />
 
             {/* Actions */}
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 3 }}>
+            <Box sx={{ display: 'flex', gap: 2, mt: 3, flexWrap: 'wrap' }}>
               <Button
                 variant='contained'
+                color='primary'
                 size='large'
-                startIcon={isAddingToCart ? <CircularProgress size={20} color="inherit" /> : <AddShoppingCart />}
-                fullWidth
+                startIcon={isProductAddingToCart ? <CircularProgress size={20} color='inherit' /> : <AddShoppingCart />}
+                disabled={isOutOfStock || isProductAddingToCart}
+                onClick={handleAddToCart}
                 sx={{
-                  p: { xs: 1.5, md: 2 },
-                  fontSize: '1rem',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  mb: 2
+                  'flex': { xs: '1 1 100%', sm: '1 1 auto' },
+                  'borderRadius': 2,
+                  'py': 1.5,
+                  'px': 3,
+                  'fontWeight': 'bold',
+                  'boxShadow': 2,
+                  'textTransform': 'none',
+                  'fontSize': '1rem',
+                  '&:hover': {
+                    boxShadow: 3,
+                    transform: 'translateY(-2px)'
+                  },
+                  'transition': 'transform 0.2s',
+                  ...(isOutOfStock && {
+                    bgcolor: 'action.disabledBackground',
+                    color: 'text.disabled'
+                  })
                 }}
-                disabled={isOutOfStock || isAddingToCart}
-                onClick={() => addToCart({ productId: product.id })}
               >
-                {isAddingToCart ? 'Đang thêm vào giỏ hàng...' : 'Thêm Vào Giỏ Hàng'}
+                {isOutOfStock ? 'Hết Hàng' : isProductAddingToCart ? 'Đang thêm...' : 'Thêm Vào Giỏ Hàng'}
               </Button>
+
               <Button
                 variant='outlined'
+                color={isProductInWishlist ? 'error' : 'primary'}
                 size='large'
-                startIcon={isAddingToWishlist ? <CircularProgress size={20} color="error" /> : <Favorite />}
-                fullWidth
-                sx={{
-                  py: 1.5,
-                  textTransform: 'none',
-                  fontWeight: 600
-                }}
+                startIcon={isProductAddingToWishlist ? <CircularProgress size={20} color='inherit' /> : <Favorite />}
+                disabled={isProductAddingToWishlist}
                 onClick={handleAddToFavorites}
-                disabled={isAddingToWishlist}
+                sx={{
+                  'flex': { xs: '1 1 100%', sm: '0 0 auto' },
+                  'borderRadius': 2,
+                  'py': 1.5,
+                  'fontWeight': 'medium',
+                  'borderWidth': '2px',
+                  'textTransform': 'none',
+                  ...(isProductInWishlist && {
+                    bgcolor: alpha(theme.palette.error.main, 0.1)
+                  }),
+                  '&:hover': {
+                    borderWidth: '2px'
+                  }
+                }}
               >
-                {isAddingToWishlist ? 'Đang thêm vào yêu thích...' : 'Thêm vào yêu thích'}
+                {isProductInWishlist ? 'Đã Yêu Thích' : isProductAddingToWishlist ? 'Đang thêm...' : 'Thêm Vào Yêu Thích'}
               </Button>
-            </Stack>
+            </Box>
 
             {/* Shipping Info */}
             <Paper

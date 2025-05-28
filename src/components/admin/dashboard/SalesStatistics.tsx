@@ -17,7 +17,7 @@ const getOrderStatusColor = (status: string): string => {
     processing: '#2196f3', // xanh dương
     shipping: '#9c27b0', // tím
     delivered: '#4caf50', // xanh lá
-    canceled: '#f44336', // đỏ
+    cancelled: '#f44336', // đỏ
     returned: '#795548' // nâu
   }
   return statusColors[status.toLowerCase()] || '#9e9e9e' // mặc định xám
@@ -30,7 +30,7 @@ const getStatusDisplayText = (status: string): string => {
     processing: 'Đang xử lý',
     shipping: 'Đang giao hàng',
     delivered: 'Đã giao hàng',
-    canceled: 'Đã hủy',
+    cancelled: 'Đã hủy',
     returned: 'Đã trả hàng'
   }
   return statusMap[status.toLowerCase()] || status
@@ -42,7 +42,7 @@ const DEFAULT_ORDER_STATUSES = [
   { status: 'processing', count: 0 },
   { status: 'shipping', count: 0 },
   { status: 'delivered', count: 0 },
-  { status: 'canceled', count: 0 },
+  { status: 'cancelled', count: 0 },
   { status: 'returned', count: 0 }
 ]
 

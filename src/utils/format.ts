@@ -81,4 +81,20 @@ export const convertDMYToYMD = (dateString: string): string => {
     console.error('Error converting date format:', error);
     return dateString;
   }
+};
+
+// Format date string or Date object with time (for display)
+export const formatDateTimeFromAny = (date: string | Date): string => {
+  try {
+    return new Date(date).toLocaleString('vi-VN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return String(date);
+  }
 }; 

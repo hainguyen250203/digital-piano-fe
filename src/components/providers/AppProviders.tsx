@@ -1,6 +1,7 @@
 'use client'
 
 import { AuthStoreProvider } from '@/context/AuthStoreContext'
+import { CartWishlistProvider } from '@/context/CartWishlistContext'
 import QueryProvider from '@/context/QueryProvider'
 import { Box } from '@mui/material'
 import { ReactNode, useEffect, useState } from 'react'
@@ -15,11 +16,11 @@ interface AppProvidersProps {
  */
 export default function AppProviders({ children }: AppProvidersProps) {
   const [mounted, setMounted] = useState(false)
-  
+
   useEffect(() => {
     setMounted(true)
   }, [])
-  
+
   return (
     <QueryProvider>
       <Box sx={{ display: 'contents' }} suppressHydrationWarning>
@@ -27,12 +28,12 @@ export default function AppProviders({ children }: AppProvidersProps) {
           children
         ) : (
           <AuthStoreProvider>
-            <ToastProvider>
-              {children}
-            </ToastProvider>
+            <CartWishlistProvider>
+              <ToastProvider>{children}</ToastProvider>
+            </CartWishlistProvider>
           </AuthStoreProvider>
         )}
       </Box>
     </QueryProvider>
   )
-} 
+}

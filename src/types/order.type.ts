@@ -40,22 +40,63 @@ export interface UpdateOrderStatusPayload {
 export interface DefaultImage {
   id: string;
   url: string;
+  productId: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
 
 export interface Product {
   id: string;
   name: string;
   defaultImage: DefaultImage;
+  reviews?: ProductReview[];
+}
+
+export interface ProductReview {
+  id: string;
+  userId: string;
+  productId: string;
+  orderItemId: string;
+  rating: number;
+  content: string;
+  isDeleted: boolean;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
 
 export interface OrderItem {
   id: string;
+  orderId?: string;
   productId: string;
   price: number;
   quantity: number;
   productName?: string;
   totalPrice?: number;
   product: Product;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+}
+
+export interface ResponseReview {
+  id: string;
+  userId: string;
+  rating: number;
+  orderItemId: string;
+  productId: string;
+  content: string;
+  isDeleted: boolean;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+export interface ResponseDiscount {
+  id: string;
+  code: string;
+  discountPercent: number;
+  maxAmount?: number;
+  startDate: string | Date;
+  endDate: string | Date;
+  isActive: boolean;
 }
 
 export interface ResponseOrder {
@@ -67,16 +108,35 @@ export interface ResponseOrder {
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;
   transactionId?: string;
-  paidAt?: Date;
+  paidAt?: Date | string;
   discountAmount?: number;
   orderTotal: number;
   shippingFee?: number;
   note?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
   items: OrderItem[];
   address?: ResponseAddress;
   paymentUrl?: string;
+  discount?: ResponseDiscount | null;
+  user?: ResponseUser;
+}
+
+export interface ResponseUser {
+  id: string;
+  email: string;
+  password?: string;
+  avatarUrl?: string;
+  phoneNumber?: string;
+  role: string;
+  otpCode?: number;
+  otpSecret?: string;
+  count?: number;
+  isBlock?: boolean;
+  isDeleted?: boolean;
+  otpExpiredAt?: string | Date;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
 }
 
 export interface VNPayReturnParams {

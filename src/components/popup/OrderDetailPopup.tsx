@@ -1,7 +1,8 @@
 'use client'
 
-import { useFetchGetOrderDetail } from '@/hooks/apis/order'
-import { OrderItem, OrderStatus } from '@/types/order.type'
+import { useFetchGetOrderDetailByUserId } from '@/hooks/apis/order'
+import { useFetchCreateReview, useFetchDeleteReview, useFetchUpdateReview } from '@/hooks/apis/review'
+import { OrderItem, OrderStatus, ProductReview } from '@/types/order.type'
 import {
   calculateSubtotal,
   formatNumber,
@@ -18,12 +19,38 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CancelIcon from '@mui/icons-material/Cancel'
 import CloseIcon from '@mui/icons-material/Close'
+import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
 import PaymentIcon from '@mui/icons-material/Payment'
+import RateReviewIcon from '@mui/icons-material/RateReview'
 import ReceiptIcon from '@mui/icons-material/Receipt'
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag'
-import { Avatar, Box, Button, Chip, CircularProgress, Dialog, DialogContent, Divider, IconButton, Paper, Stack, Step, StepLabel, Stepper, Typography, useMediaQuery, useTheme } from '@mui/material'
+import StarIcon from '@mui/icons-material/Star'
+import StarBorderIcon from '@mui/icons-material/StarBorder'
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogContent,
+  Divider,
+  IconButton,
+  Paper,
+  Rating,
+  Stack,
+  Step,
+  StepLabel,
+  Stepper,
+  TextField,
+  Typography,
+  useMediaQuery,
+  useTheme
+} from '@mui/material'
 import Image from 'next/image'
+import { useEffect, useState } from 'react'
 
 interface OrderDetailPopupProps {
   open: boolean
@@ -33,10 +60,59 @@ interface OrderDetailPopupProps {
   isRepaymentLoading?: boolean
 }
 
+interface ReviewFormData {
+  id?: string
+  orderItemId: string
+  productId: string
+  rating: number
+  content: string
+}
+
 export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, isRepaymentLoading }: OrderDetailPopupProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-  const { data: orderResponse, isLoading } = useFetchGetOrderDetail(orderId)
+  const [reviewForm, setReviewForm] = useState<ReviewFormData | null>(null)
+  const [isEditMode, setIsEditMode] = useState(false)
+
+  const { mutate: getOrderDetail, data: orderResponse, isPending } = useFetchGetOrderDetailByUserId()
+  const { mutate: createReview, isPending: isCreatingReview } = useFetchCreateReview({
+    onSuccess: () => {
+      // Refetch order details to get updated reviews
+      if (orderId) getOrderDetail(orderId)
+      setReviewForm(null)
+    }
+  })
+
+  const { mutate: updateReview, isPending: isUpdatingReview } = useFetchUpdateReview({
+    onSuccess: () => {
+      // Refetch order details to get updated reviews
+      if (orderId) getOrderDetail(orderId)
+      setReviewForm(null)
+      setIsEditMode(false)
+    }
+  })
+
+  const { mutate: deleteReview } = useFetchDeleteReview({
+    onSuccess: () => {
+      // Refetch order details to get updated reviews
+      if (orderId) getOrderDetail(orderId)
+    }
+  })
+
+  // Fetch order details when orderId changes
+  useEffect(() => {
+    if (orderId) {
+      getOrderDetail(orderId)
+    }
+  }, [orderId, getOrderDetail])
+
+  // Reset form state when loading new order data
+  useEffect(() => {
+    if (orderResponse) {
+      setReviewForm(null)
+      setIsEditMode(false)
+    }
+  }, [orderResponse])
 
   // Get the actual order data from the response
   const orderData = orderResponse?.data
@@ -56,8 +132,66 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
   // Calculate subtotal (before shipping and discounts)
   const subtotal = calculateSubtotal(orderData?.items)
 
+  // Review handlers
+  const handleOpenReviewForm = (item: OrderItem) => {
+    setReviewForm({
+      orderItemId: item.id,
+      productId: item.productId,
+      rating: 5,
+      content: ''
+    })
+    setIsEditMode(false)
+  }
+
+  const handleEditReview = (review: ProductReview) => {
+    setReviewForm({
+      id: review.id,
+      orderItemId: review.orderItemId,
+      productId: review.productId,
+      rating: review.rating,
+      content: review.content
+    })
+    setIsEditMode(true)
+  }
+
+  const handleDeleteReview = (reviewId: string) => {
+    if (confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
+      deleteReview({ id: reviewId })
+    }
+  }
+
+  const handleSubmitReview = () => {
+    if (!reviewForm) return
+
+    if (isEditMode && reviewForm.id) {
+      updateReview({
+        id: reviewForm.id,
+        rating: reviewForm.rating,
+        content: reviewForm.content
+      })
+    } else {
+      createReview({
+        orderItemId: reviewForm.orderItemId,
+        productId: reviewForm.productId,
+        rating: reviewForm.rating,
+        content: reviewForm.content
+      })
+    }
+  }
+
+  const handleCancelReview = () => {
+    setReviewForm(null)
+    setIsEditMode(false)
+  }
+
+  // Find review for a specific order item
+  const findReviewForItem = (item: OrderItem) => {
+    if (!item.product?.reviews || !Array.isArray(item.product.reviews)) return null
+    return item.product.reviews.find(review => review.orderItemId === item.id)
+  }
+
   // Show loading state
-  if (isLoading) {
+  if (isPending) {
     return (
       <Dialog open={open} onClose={onClose} maxWidth='md' fullWidth PaperProps={{ sx: { borderRadius: 2, p: 4 } }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
@@ -308,44 +442,141 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
 
             <Stack spacing={2} divider={<Divider flexItem />}>
               {Array.isArray(orderData.items) && orderData.items.length > 0 ? (
-                orderData.items.map((item: OrderItem) => (
-                  <Box key={item.id} sx={{ display: 'flex', gap: 2 }}>
-                    <Box
-                      sx={{
-                        width: 80,
-                        height: 80,
-                        position: 'relative',
-                        flexShrink: 0,
-                        borderRadius: 1,
-                        overflow: 'hidden',
-                        border: '1px solid',
-                        borderColor: 'divider'
-                      }}
-                    >
-                      {item.product.defaultImage.url ? (
-                        <Image src={item.product.defaultImage.url} alt={item.productName || 'Sản phẩm'} layout='fill' objectFit='cover' />
-                      ) : (
-                        <Box sx={{ width: 80, height: 80, bgcolor: 'grey.100', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Typography variant='caption'>Không có ảnh</Typography>
+                orderData.items.map((item: OrderItem) => {
+                  const itemReview = findReviewForItem(item)
+                  const showReviewForm = reviewForm && reviewForm.orderItemId === item.id
+
+                  return (
+                    <Box key={item.id}>
+                      <Box sx={{ display: 'flex', gap: 2 }}>
+                        <Box
+                          sx={{
+                            width: 80,
+                            height: 80,
+                            position: 'relative',
+                            flexShrink: 0,
+                            borderRadius: 1,
+                            overflow: 'hidden',
+                            border: '1px solid',
+                            borderColor: 'divider'
+                          }}
+                        >
+                          {item.product.defaultImage.url ? (
+                            <Image src={item.product.defaultImage.url} alt={item.productName || 'Sản phẩm'} layout='fill' objectFit='cover' />
+                          ) : (
+                            <Box sx={{ width: 80, height: 80, bgcolor: 'grey.100', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Typography variant='caption'>Không có ảnh</Typography>
+                            </Box>
+                          )}
+                        </Box>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant='subtitle2'>{item.productName || `Sản phẩm ${item.product.name}`}</Typography>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1, flexWrap: 'wrap' }}>
+                            <Typography variant='body2' color='text.secondary'>
+                              Số lượng: {item.quantity}
+                            </Typography>
+                            <Typography variant='body2' fontWeight={600}>
+                              {formatNumber(item.price)} VNĐ
+                            </Typography>
+                          </Box>
+                          <Typography variant='body2' fontWeight={600} sx={{ mt: 1, textAlign: 'right' }}>
+                            Thành tiền: {formatNumber(item.price * item.quantity)} VNĐ
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      {/* Review section */}
+                      {orderData.orderStatus === OrderStatus.DELIVERED && (
+                        <Box sx={{ mt: 2, ml: { xs: 0, sm: 12 } }}>
+                          {itemReview ? (
+                            <Box
+                              sx={{
+                                p: 2,
+                                bgcolor: 'grey.50',
+                                borderRadius: 1,
+                                border: '1px solid',
+                                borderColor: 'divider'
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <RateReviewIcon fontSize='small' color='primary' />
+                                  <Typography variant='subtitle2'>Đánh giá của bạn</Typography>
+                                </Box>
+                                <Box>
+                                  <IconButton size='small' onClick={() => handleEditReview(itemReview)}>
+                                    <EditIcon fontSize='small' />
+                                  </IconButton>
+                                  <IconButton size='small' onClick={() => handleDeleteReview(itemReview.id)}>
+                                    <DeleteIcon fontSize='small' />
+                                  </IconButton>
+                                </Box>
+                              </Box>
+
+                              <Rating value={itemReview.rating} readOnly precision={1} emptyIcon={<StarBorderIcon fontSize='inherit' />} icon={<StarIcon fontSize='inherit' />} />
+
+                              <Typography variant='body2' sx={{ mt: 1 }}>
+                                {itemReview.content}
+                              </Typography>
+
+                              <Typography variant='caption' color='text.secondary' sx={{ display: 'block', mt: 1 }}>
+                                Đánh giá vào: {new Date(itemReview.createdAt).toLocaleDateString('vi-VN')}
+                              </Typography>
+                            </Box>
+                          ) : showReviewForm ? (
+                            <Box
+                              sx={{
+                                p: 2,
+                                bgcolor: 'grey.50',
+                                borderRadius: 1,
+                                border: '1px solid',
+                                borderColor: 'divider'
+                              }}
+                            >
+                              <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                                {isEditMode ? 'Chỉnh sửa đánh giá' : 'Viết đánh giá của bạn'}
+                              </Typography>
+
+                              <Rating
+                                value={reviewForm.rating}
+                                onChange={(_, newValue) => {
+                                  setReviewForm(prev => ({ ...prev!, rating: newValue || 1 }))
+                                }}
+                                precision={1}
+                                emptyIcon={<StarBorderIcon fontSize='inherit' />}
+                                icon={<StarIcon fontSize='inherit' />}
+                              />
+
+                              <TextField
+                                fullWidth
+                                multiline
+                                rows={3}
+                                placeholder='Nhập nội dung đánh giá của bạn'
+                                value={reviewForm.content}
+                                onChange={e => setReviewForm(prev => ({ ...prev!, content: e.target.value }))}
+                                size='small'
+                                margin='normal'
+                              />
+
+                              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
+                                <Button variant='outlined' size='small' onClick={handleCancelReview}>
+                                  Hủy
+                                </Button>
+                                <Button variant='contained' size='small' onClick={handleSubmitReview} disabled={!reviewForm.content || isCreatingReview || isUpdatingReview}>
+                                  {isEditMode ? 'Cập nhật' : 'Gửi đánh giá'}
+                                </Button>
+                              </Box>
+                            </Box>
+                          ) : (
+                            <Button variant='outlined' size='small' startIcon={<RateReviewIcon />} onClick={() => handleOpenReviewForm(item)} sx={{ mt: 1 }}>
+                              Viết đánh giá
+                            </Button>
+                          )}
                         </Box>
                       )}
                     </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant='subtitle2'>{item.productName || `Sản phẩm #${item.productId}`}</Typography>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1, flexWrap: 'wrap' }}>
-                        <Typography variant='body2' color='text.secondary'>
-                          Số lượng: {item.quantity}
-                        </Typography>
-                        <Typography variant='body2' fontWeight={600}>
-                          {formatNumber(item.price)} VNĐ
-                        </Typography>
-                      </Box>
-                      <Typography variant='body2' fontWeight={600} sx={{ mt: 1, textAlign: 'right' }}>
-                        Thành tiền: {formatNumber(item.price * item.quantity)} VNĐ
-                      </Typography>
-                    </Box>
-                  </Box>
-                ))
+                  )
+                })
               ) : (
                 <Box sx={{ py: 2, textAlign: 'center' }}>
                   <Typography variant='body2' color='text.secondary'>

@@ -58,3 +58,8 @@ export const fetchUserChangePaymentMethod = async (id: string, paymentMethod: Pa
   const { data } = await API.post(Endpoint().order.userChangePaymentMethod(id), { paymentMethod });
   return data;
 };
+
+export const fetchGetOrderDetailByUserId = async (orderId: string): Promise<BaseResponse<ResponseOrder>> => {
+  const { data } = await API.get(Endpoint().order.OrderDetailByUserId(orderId));
+  return data;
+};

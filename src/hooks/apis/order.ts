@@ -1,5 +1,5 @@
 import { QueryKey } from "@/models/QueryKey";
-import { fetchAdminCancelOrder, fetchCreateOrder, fetchGetAllOrders, fetchGetMyOrders, fetchGetOrderDetail, fetchRepayment, fetchUpdateOrderStatus, fetchUserCancelOrder, fetchUserChangePaymentMethod, fetchUserConfirmDelivery, fetchVerifyReturnUrl } from "@/services/apis/order";
+import { fetchAdminCancelOrder, fetchCreateOrder, fetchGetAllOrders, fetchGetMyOrders, fetchGetOrderDetail, fetchGetOrderDetailByUserId, fetchRepayment, fetchUpdateOrderStatus, fetchUserCancelOrder, fetchUserChangePaymentMethod, fetchUserConfirmDelivery, fetchVerifyReturnUrl } from "@/services/apis/order";
 import { BaseResponse } from "@/types/base-response";
 import { CreateOrderPayload, PaymentMethod, ResponseOrder, ResponseRepayment, ResponseVerifyReturnUrl, UpdateOrderStatusPayload, VNPayReturnParams } from "@/types/order.type";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -118,3 +118,13 @@ export const useFetchUserChangePaymentMethod = (options?: {
     ...options
   })
 }
+
+export const useFetchGetOrderDetailByUserId = (options?: {
+  onSuccess?: (data: BaseResponse<ResponseOrder>) => void;
+  onError?: (error: BaseResponse<null>) => void;
+}) => {
+  return useMutation({
+    mutationFn: (orderId: string) => fetchGetOrderDetailByUserId(orderId),
+    ...options,
+  });
+};

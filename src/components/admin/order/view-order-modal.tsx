@@ -2,7 +2,19 @@
 
 import { useFetchGetOrderDetail } from '@/hooks/apis/order'
 import { OrderStatus } from '@/types/order.type'
-import { calculateSubtotal, formatNumber, formatPaymentMethod, getOrderStep, getPaymentStatusColor, getPaymentStatusText, getStatusColor, getStatusIcon, getStatusText, getStepIcon } from '@/utils/order'
+import { formatDateTimeFromAny } from '@/utils/format'
+import {
+  calculateSubtotal,
+  formatNumber,
+  formatPaymentMethod,
+  getOrderStep,
+  getPaymentStatusColor,
+  getPaymentStatusText,
+  getStatusColor,
+  getStatusIcon,
+  getStatusText,
+  getStepIcon
+} from '@/utils/order'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CancelIcon from '@mui/icons-material/Cancel'
 import CloseIcon from '@mui/icons-material/Close'
@@ -31,18 +43,6 @@ export default function ViewOrderModal({ open, onClose, orderId }: ViewOrderModa
 
   // Order steps for the stepper
   const steps = ['Đã đặt hàng', 'Đang xử lý', 'Đang giao hàng', 'Đã giao hàng']
-
-  // Format date helper
-  const formatDate = (dateString: Date | undefined) => {
-    if (!dateString) return 'N/A'
-    return new Date(dateString).toLocaleString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
 
   // Calculate subtotal (before shipping and discounts)
   const subtotal = calculateSubtotal(orderData?.items)
@@ -139,10 +139,10 @@ export default function ViewOrderModal({ open, onClose, orderId }: ViewOrderModa
                   Đơn hàng #{orderData.id}
                 </Typography>
                 <Typography variant='body2' color='text.secondary'>
-                  Ngày đặt: {formatDate(orderData.createdAt)}
+                  Ngày đặt: {orderData.createdAt ? formatDateTimeFromAny(orderData.createdAt) : 'N/A'}
                 </Typography>
                 <Typography variant='body2' color='text.secondary'>
-                  Cập nhật cuối: {formatDate(orderData.updatedAt)}
+                  Cập nhật cuối: {orderData.updatedAt ? formatDateTimeFromAny(orderData.updatedAt) : 'N/A'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', mt: { xs: 2, sm: 0 }, flexWrap: 'wrap', gap: 1 }}>
@@ -256,7 +256,7 @@ export default function ViewOrderModal({ open, onClose, orderId }: ViewOrderModa
                   {orderData.paidAt && (
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant='body2'>Ngày thanh toán:</Typography>
-                      <Typography variant='body2'>{formatDate(orderData.paidAt)}</Typography>
+                      <Typography variant='body2'>{orderData.paidAt ? formatDateTimeFromAny(orderData.paidAt) : 'N/A'}</Typography>
                     </Box>
                   )}
                   {orderData.transactionId && (
@@ -418,4 +418,4 @@ export default function ViewOrderModal({ open, onClose, orderId }: ViewOrderModa
       </DialogContent>
     </Dialog>
   )
-} 
+}

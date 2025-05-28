@@ -1,13 +1,11 @@
 'use client'
 
 import NotificationMenu from '@/components/common/NotificationMenu'
-import { useFetchGetCart } from '@/hooks/apis/cart'
-import { useFetchWishlist } from '@/hooks/apis/wishlist'
+import { useCartWishlist } from '@/context/CartWishlistContext'
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import PersonIcon from '@mui/icons-material/Person'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import { Badge, Box, IconButton, Tooltip } from '@mui/material'
-import { useEffect, useState } from 'react'
 import ClientProfileMenu from './client-profile-menu'
 
 interface UserActionsProps {
@@ -22,22 +20,7 @@ interface UserActionsProps {
  * Shows profile, favorites and cart icons
  */
 export default function UserActions({ isLoggedIn, openLoginPopup, openCartPopup, openFavoritesPopup }: UserActionsProps) {
-  const { data: getListWishlist } = useFetchWishlist()
-  const { data: getCart } = useFetchGetCart()
-  const [wishlistCount, setWishlistCount] = useState(0)
-  const [cartCount, setCartCount] = useState(0)
-
-  useEffect(() => {
-    if (getListWishlist?.data) {
-      setWishlistCount(getListWishlist.data.length || 0)
-    }
-  }, [getListWishlist])
-
-  useEffect(() => {
-    if (getCart?.data) {
-      setCartCount(getCart.data.totalQuantity || 0)
-    }
-  }, [getCart])
+  const { cartCount, wishlistCount } = useCartWishlist()
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center' }}>

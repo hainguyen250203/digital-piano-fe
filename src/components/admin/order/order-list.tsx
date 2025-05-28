@@ -5,6 +5,7 @@ import ViewOrderModal from '@/components/admin/order/view-order-modal'
 import { useFetchAdminCancelOrder, useFetchGetOrderDetail, useFetchUpdateOrderStatus } from '@/hooks/apis/order'
 import { QueryKey } from '@/models/QueryKey'
 import { OrderStatus, PaymentMethod, PaymentStatus, ResponseOrder } from '@/types/order.type'
+import { formatDateTimeFromAny } from '@/utils/format'
 import { formatNumber, formatPaymentMethod, getPaymentStatusColor, getPaymentStatusText, getStatusColor, getStatusIcon, getStatusText } from '@/utils/order'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
@@ -185,17 +186,6 @@ export default function OrderList({ orders }: { orders: ResponseOrder[] }) {
     return order.orderStatus === OrderStatus.PENDING || order.orderStatus === OrderStatus.PROCESSING
   }
 
-  // Helper to format date
-  const formatDate = (dateString: Date) => {
-    return new Date(dateString).toLocaleString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
   return (
     <>
       <Box mb={2} display='flex' justifyContent='space-between' gap={2} alignItems='center' flexWrap='wrap'>
@@ -287,7 +277,7 @@ export default function OrderList({ orders }: { orders: ResponseOrder[] }) {
                 filteredOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(order => (
                   <TableRow key={order.id} hover>
                     <TableCell>{order.id}</TableCell>
-                    <TableCell>{formatDate(order.createdAt)}</TableCell>
+                    <TableCell>{formatDateTimeFromAny(order.createdAt)}</TableCell>
                     <TableCell>
                       {order.address ? (
                         <Box>

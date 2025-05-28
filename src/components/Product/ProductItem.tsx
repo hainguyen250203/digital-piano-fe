@@ -1,17 +1,13 @@
 'use client'
 
-import { useFetchAddToCart } from '@/hooks/apis/cart'
+import { useCartWishlist } from '@/context/CartWishlistContext'
 import { ProductListData } from '@/hooks/apis/product'
-import { useAddToWishlist } from '@/hooks/apis/wishlist'
-import { QueryKey } from '@/models/QueryKey'
 import { formatCurrency } from '@/utils/format'
 import { AddShoppingCart, Favorite } from '@mui/icons-material'
-import { alpha, Badge, Box, Card, CardContent, Chip, CircularProgress, IconButton, styled, Tooltip, Typography } from '@mui/material'
-import { useQueryClient } from '@tanstack/react-query'
+import { alpha, Badge, Box, Card, CardContent, Chip, CircularProgress, IconButton, styled, Tooltip, Typography, useTheme } from '@mui/material'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
-import { toast } from 'react-toastify'
 
 // Type definitions
 type TagType = 'hot' | 'featured'
@@ -175,32 +171,16 @@ const CategoryChip = styled(Chip)(({ theme }) => ({
 
 export default function ProductItem({ product }: ProductItemProps) {
   const [hovered, setHovered] = useState(false)
-  const queryClient = useQueryClient()
-  const { mutate: addToWishlist, isPending: isAddingToWishlist } = useAddToWishlist({
-    onSuccess: () => {
-      toast.success('Đã thêm vào danh sách yêu thích', { position: 'top-center' })
-      queryClient.invalidateQueries({ queryKey: [QueryKey.WISHLIST_LIST] })
-    },
-    onError: error => {
-      if (error.errorCode === 4) {
-        toast.error('Vui lòng đăng nhập để sử dụng tính năng này', { position: 'top-center' })
-      } else {
-        toast.error(error.message || 'Lỗi khi thêm vào danh sách yêu thích', { position: 'top-center' })
-      }
-    }
-  })
-  const { mutate: addToCart, isPending: isAddingToCart } = useFetchAddToCart({
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.GET_CART] })
-    },
-    onError: error => {
-      if (error.errorCode === 4) {
-        toast.error('Vui lòng đăng nhập để sử dụng tính năng này', { position: 'top-center' })
-      } else {
-        toast.error(error.message || 'Lỗi khi thêm vào giỏ hàng', { position: 'top-center' })
-      }
-    }
-  })
+  const theme = useTheme()
+  
+  const { 
+    addToWishlist, 
+    addToCart, 
+    isAddingToWishlist,
+    isAddingToCart,
+    isInWishlist
+  } = useCartWishlist()
+  
   if (!product) {
     return null
   }
@@ -208,6 +188,9 @@ export default function ProductItem({ product }: ProductItemProps) {
   const isOutOfStock = !product.stock || product.stock.quantity === 0
   const discountPercentage = product.salePrice ? Math.round(((product.price - product.salePrice) / product.price) * 100) : null
   const imageUrl = product.defaultImage?.url || 'https://www.aaronfaber.com/wp-content/uploads/2017/03/product-placeholder-wp.jpg'
+  const isProductInWishlist = isInWishlist(product.id)
+  const isProductAddingToCart = isAddingToCart(product.id)
+  const isProductAddingToWishlist = isAddingToWishlist(product.id)
 
   const handleAddToCart = () => {
     if (isOutOfStock) return
@@ -267,48 +250,55 @@ export default function ProductItem({ product }: ProductItemProps) {
           )}
 
           {/* Add to Cart & Wishlist buttons with improved tooltips */}
-          <IconButtonContainer className='action-buttons' sx={{ opacity: hovered || isAddingToCart || isAddingToWishlist ? 1 : 0 }}>
+          <IconButtonContainer className='action-buttons' sx={{ opacity: hovered || isProductAddingToCart || isProductAddingToWishlist ? 1 : 0 }}>
             {/* Add to Cart Button */}
-            <Tooltip title={isOutOfStock ? 'Hết Hàng' : isAddingToCart ? 'Đang thêm vào giỏ...' : 'Thêm Vào Giỏ'} placement='left' arrow enterDelay={500} leaveDelay={200}>
+            <Tooltip title={isOutOfStock ? 'Hết Hàng' : isProductAddingToCart ? 'Đang thêm vào giỏ...' : 'Thêm Vào Giỏ'} placement='left' arrow enterDelay={500} leaveDelay={200}>
               <span>
                 <ActionIconButton
                   size='small'
                   color='primary'
                   sx={{
                     '&:hover': {
-                      bgcolor: theme => alpha(theme.palette.primary.main, 0.1)
+                      bgcolor: alpha(theme.palette.primary.main, 0.1)
                     },
-                    ...(isAddingToCart && {
-                      bgcolor: theme => alpha(theme.palette.primary.main, 0.1)
+                    ...(isProductAddingToCart && {
+                      bgcolor: alpha(theme.palette.primary.main, 0.1)
                     })
                   }}
-                  disabled={isOutOfStock || isAddingToCart}
+                  disabled={isOutOfStock || isProductAddingToCart}
                   onClick={handleAddToCart}
                   aria-label='Add to cart'
                 >
-                  {isAddingToCart ? <CircularProgress size={20} color='primary' /> : <AddShoppingCart fontSize='small' color={isOutOfStock ? 'disabled' : 'primary'} />}
+                  {isProductAddingToCart ? <CircularProgress size={20} color='primary' /> : <AddShoppingCart fontSize='small' color={isOutOfStock ? 'disabled' : 'primary'} />}
                 </ActionIconButton>
               </span>
             </Tooltip>
 
             {/* Add to Wishlist Button */}
-            <Tooltip title={isAddingToWishlist ? 'Đang thêm vào yêu thích...' : 'Thêm Vào Yêu Thích'} placement='left' arrow enterDelay={500} leaveDelay={200}>
+            <Tooltip title={isProductAddingToWishlist ? 'Đang thêm vào yêu thích...' : isProductInWishlist ? 'Đã Yêu Thích' : 'Thêm Vào Yêu Thích'} placement='left' arrow enterDelay={500} leaveDelay={200}>
               <ActionIconButton
                 size='small'
                 color='default'
                 sx={{
                   '&:hover': {
-                    bgcolor: theme => alpha(theme.palette.error.main, 0.1)
+                    bgcolor: alpha(theme.palette.error.main, 0.1)
                   },
-                  ...(isAddingToWishlist && {
-                    bgcolor: theme => alpha(theme.palette.error.main, 0.1)
+                  ...(isProductAddingToWishlist && {
+                    bgcolor: alpha(theme.palette.error.main, 0.1)
+                  }),
+                  ...(isProductInWishlist && {
+                    bgcolor: alpha(theme.palette.error.main, 0.1)
                   })
                 }}
                 onClick={handleAddToWishlist}
                 aria-label='Add to wishlist'
-                disabled={isAddingToWishlist}
+                disabled={isProductAddingToWishlist}
               >
-                {isAddingToWishlist ? <CircularProgress size={20} color='error' /> : <Favorite fontSize='small' color={hovered ? 'error' : 'action'} />}
+                {isProductAddingToWishlist ? (
+                  <CircularProgress size={20} color='error' />
+                ) : (
+                  <Favorite fontSize='small' color={isProductInWishlist || hovered ? 'error' : 'action'} />
+                )}
               </ActionIconButton>
             </Tooltip>
           </IconButtonContainer>

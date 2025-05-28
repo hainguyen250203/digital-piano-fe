@@ -1,16 +1,13 @@
 'use client'
 
-import { useFetchDeleteCartItem, useFetchUpdateCartItem } from '@/hooks/apis/cart'
-import { QueryKey } from '@/models/QueryKey'
+import { useCartWishlist } from '@/context/CartWishlistContext'
 import { type ResCartType } from '@/types/cart.type'
 import { formatCurrency } from '@/utils/format'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import RemoveIcon from '@mui/icons-material/Remove'
 import { alpha, Box, CircularProgress, IconButton, Link, Stack, Typography, useTheme } from '@mui/material'
-import { useQueryClient } from '@tanstack/react-query'
 import Image from 'next/image'
-import { toast } from 'react-toastify'
 
 // Use the CartItemType from ResCartType
 type CartItemType = ResCartType['items'][0]
@@ -21,24 +18,7 @@ interface CartItemProps {
 
 const CartItem = ({ item }: CartItemProps) => {
   const theme = useTheme()
-  const queryClient = useQueryClient()
-  const { mutate: deleteCartItem, isPending: isDeleting } = useFetchDeleteCartItem({
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.GET_CART] })
-    },
-    onError: error => {
-      toast.error(error.message || 'Có lỗi xảy ra khi xóa sản phẩm khỏi giỏ hàng')
-    }
-  })
-
-  const { mutate: updateCartItem, isPending: isUpdating } = useFetchUpdateCartItem({
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.GET_CART] })
-    },
-    onError: error => {
-      toast.error(error.message || 'Có lỗi xảy ra khi cập nhật số lượng sản phẩm')
-    }
-  })
+  const { updateCartItem, removeCartItem, isUpdatingCart, isDeletingCartItem } = useCartWishlist()
 
   const handleUpdateQuantity = (quantity: number) => {
     if (quantity < 1) {
@@ -46,91 +26,77 @@ const CartItem = ({ item }: CartItemProps) => {
       return
     }
 
-    updateCartItem({
-      cartItemId: item.id,
-      quantity
-    })
+    updateCartItem(item.id, quantity)
   }
 
   const handleRemoveItem = () => {
-    deleteCartItem(item.id)
+    removeCartItem(item.id)
   }
 
   const { product } = item
-  const isOnSale = product.salePrice < product.price
   const displayPrice = product.salePrice > 0 ? product.salePrice : product.price
   const totalPrice = displayPrice * item.quantity
+
+  // Determine if this specific item is being updated or deleted
+  const isThisItemUpdating = isUpdatingCart(item.id)
+  const isThisItemDeleting = isDeletingCartItem(item.id)
 
   return (
     <Box
       sx={{
         'display': 'flex',
-        'p': 2,
-        'mb': 2,
-        'borderRadius': 2,
-        'bgcolor': '#ffffff',
         'position': 'relative',
-        'transition': 'all 0.2s ease',
+        'p': 1.5,
+        'borderRadius': 1,
+        'mb': 1,
+        'backgroundColor': 'background.paper',
         'border': '1px solid',
         'borderColor': 'divider',
         '&:hover': {
-          bgcolor: alpha(theme.palette.background.default, 0.7),
-          borderColor: theme.palette.divider
-        },
-        ...(isDeleting && {
-          opacity: 0.7,
-          bgcolor: alpha(theme.palette.background.default, 0.5)
-        })
+          boxShadow: 1,
+          borderColor: 'primary.light',
+          backgroundColor: alpha(theme.palette.primary.light, 0.03)
+        }
       }}
     >
-      {isDeleting && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 5
-          }}
-        >
-          <CircularProgress color="error" size={40} />
-        </Box>
-      )}
-      
+      {/* Delete button */}
+      <IconButton
+        size='small'
+        onClick={handleRemoveItem}
+        disabled={isThisItemDeleting || isThisItemUpdating}
+        sx={{
+          'position': 'absolute',
+          'top': 8,
+          'right': 8,
+          'color': 'text.secondary',
+          'p': 0.5,
+          '&:hover': {
+            color: 'error.main',
+            backgroundColor: alpha(theme.palette.error.main, 0.1)
+          }
+        }}
+      >
+        {isThisItemDeleting ? <CircularProgress size={16} color='error' /> : <DeleteOutlineIcon fontSize='small' />}
+      </IconButton>
+
       {/* Product Image */}
       <Box
         sx={{
+          width: 80,
+          height: 80,
           borderRadius: 1,
           overflow: 'hidden',
-          width: 70,
-          height: 70,
-          position: 'relative',
           flexShrink: 0,
-          border: '1px solid rgba(0,0,0,0.07)'
+          border: '1px solid',
+          borderColor: 'divider',
+          backgroundColor: 'white',
+          position: 'relative'
         }}
       >
-        <Image src={product.defaultImage.url} alt={product.name} fill style={{ objectFit: 'cover' }} sizes='70px' priority />
-        {isOnSale && (
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              bgcolor: theme.palette.error.main,
-              color: 'white',
-              fontSize: '10px',
-              fontWeight: 'bold',
-              py: 0.3,
-              px: 0.5,
-              borderBottomRightRadius: 4
-            }}
-          >
-            {Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF
-          </Box>
-        )}
+        <Image src={product.defaultImage?.url || '/placeholder-image.jpg'} alt={product.name} fill sizes='80px' style={{ objectFit: 'contain', padding: '4px' }} />
       </Box>
 
-      {/* Product Details */}
+      {/* Product Info */}
       <Box sx={{ ml: 2, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, pr: 5 }}>
         <Box sx={{ minWidth: 0 }}>
           <Link href={`/products/${product.id}`} sx={{ textDecoration: 'none', display: 'block' }}>
@@ -191,7 +157,7 @@ const CartItem = ({ item }: CartItemProps) => {
             <IconButton
               size='small'
               onClick={() => handleUpdateQuantity(item.quantity - 1)}
-              disabled={isUpdating || isDeleting}
+              disabled={isThisItemUpdating || isThisItemDeleting}
               sx={{
                 border: '1px solid',
                 borderColor: 'divider',
@@ -216,8 +182,8 @@ const CartItem = ({ item }: CartItemProps) => {
                 position: 'relative'
               }}
             >
-              {isUpdating ? (
-                <CircularProgress size={16} color="primary" />
+              {isThisItemUpdating ? (
+                <CircularProgress size={16} color='primary' />
               ) : (
                 <Typography variant='body2' sx={{ fontWeight: 600 }}>
                   {item.quantity}
@@ -228,7 +194,7 @@ const CartItem = ({ item }: CartItemProps) => {
             <IconButton
               size='small'
               onClick={() => handleUpdateQuantity(item.quantity + 1)}
-              disabled={isUpdating || isDeleting}
+              disabled={isThisItemUpdating || isThisItemDeleting}
               sx={{
                 border: '1px solid',
                 borderColor: 'divider',
@@ -251,33 +217,6 @@ const CartItem = ({ item }: CartItemProps) => {
           </Typography>
         </Box>
       </Box>
-
-      {/* Remove Button */}
-      <IconButton
-        size='small'
-        disabled={isDeleting || isUpdating}
-        onClick={handleRemoveItem}
-        sx={{
-          'position': 'absolute',
-          'top': 8,
-          'right': 8,
-          'p': 0.5,
-          'color': 'text.secondary',
-          '&:hover': {
-            color: theme.palette.error.main,
-            bgcolor: alpha(theme.palette.error.light, 0.1)
-          },
-          ...(isDeleting && {
-            bgcolor: alpha(theme.palette.error.light, 0.1)
-          })
-        }}
-      >
-        {isDeleting ? (
-          <CircularProgress size={16} color="error" />
-        ) : (
-          <DeleteOutlineIcon fontSize='small' />
-        )}
-      </IconButton>
     </Box>
   )
 }

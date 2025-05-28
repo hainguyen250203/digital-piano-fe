@@ -7,7 +7,6 @@ interface OrdersTableProps {
   isUserCancelOrderLoading: boolean
   onOpenDetail: (orderId: string) => void
   onCancelOrder: (orderId: string) => void
-  formatDate: (dateString: Date) => string
   onOrderStatusChange: () => void
 }
 
@@ -16,7 +15,6 @@ export default function OrdersTable({
   isUserCancelOrderLoading,
   onOpenDetail,
   onCancelOrder,
-  formatDate,
   onOrderStatusChange
 }: OrdersTableProps) {
   return (
@@ -41,7 +39,6 @@ export default function OrdersTable({
               isUserCancelOrderLoading={isUserCancelOrderLoading}
               onOpenDetail={onOpenDetail}
               onCancelOrder={onCancelOrder}
-              formatDate={formatDate}
               onOrderStatusChange={onOrderStatusChange}
             />
           ))}

@@ -1,7 +1,8 @@
 'use client'
 
-import { useFetchCreateAddress, useFetchDeleteAddress, useFetchSetDefaultAddress, useFetchUpdateAddress } from '@/hooks/apis/address'
-import { CreateAddressPayload, ResponseAddress, UpdateAddressPayload } from '@/types/address.type'
+import AddressForm from '@/components/address/AddressForm'
+import { useAddressActions } from '@/hooks/address/useAddressActions'
+import { ResponseAddress } from '@/types/address.type'
 import { BaseResponse } from '@/types/base-response'
 import AddIcon from '@mui/icons-material/Add'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
@@ -25,8 +26,7 @@ import {
   Tooltip,
   Typography
 } from '@mui/material'
-import React, { useMemo, useState } from 'react'
-import AddressForm from '../address/AddressForm'
+import { useMemo } from 'react'
 
 interface AddressSectionProps {
   addressData: BaseResponse<ResponseAddress[]> | undefined
@@ -34,87 +34,28 @@ interface AddressSectionProps {
 }
 
 export default function AddressSection({ addressData, addressRefetch }: AddressSectionProps) {
-  const [openAddressDialog, setOpenAddressDialog] = useState(false)
-  const [currentAddress, setCurrentAddress] = useState<ResponseAddress | null>(null)
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(3)
-
-  const { mutate: createAddress, isPending: isCreatingAddress } = useFetchCreateAddress({
-    onSuccess: () => {
-      addressRefetch()
-      handleCloseAddressDialog()
-    },
-    onError: error => {
-      console.error(error.message, 'lỗi khi tạo địa chỉ mới')
-    }
+  // Use address actions hook
+  const {
+    openAddressDialog,
+    currentAddress,
+    page,
+    rowsPerPage,
+    isCreatingAddress,
+    isUpdatingAddress,
+    isDeletingAddress,
+    isSettingDefaultAddress,
+    handleOpenAddressDialog,
+    handleCloseAddressDialog,
+    handleSaveAddress,
+    handleDeleteAddress,
+    handleSetDefaultAddress,
+    handleChangePage,
+    handleChangeRowsPerPage
+  } = useAddressActions({
+    onAddressChanged: addressRefetch
   })
 
-  const { mutate: updateAddress, isPending: isUpdatingAddress } = useFetchUpdateAddress({
-    onSuccess: () => {
-      addressRefetch()
-      handleCloseAddressDialog()
-    },
-    onError: error => {
-      console.error(error.message, 'lỗi khi cập nhật địa chỉ')
-    }
-  })
-
-  const { mutate: deleteAddress, isPending: isDeletingAddress } = useFetchDeleteAddress({
-    onSuccess: () => {
-      addressRefetch()
-    },
-    onError: error => {
-      console.error(error.message, 'lỗi khi xóa địa chỉ')
-    }
-  })
-
-  const { mutate: setDefaultAddress, isPending: isSettingDefaultAddress } = useFetchSetDefaultAddress({
-    onSuccess: () => {
-      addressRefetch()
-    },
-    onError: error => {
-      console.error(error.message, 'lỗi khi đặt địa chỉ mặc định')
-    }
-  })
-
-  const handleOpenAddressDialog = (address: ResponseAddress | null = null) => {
-    setCurrentAddress(address)
-    setOpenAddressDialog(true)
-  }
-
-  const handleCloseAddressDialog = () => {
-    setOpenAddressDialog(false)
-    setCurrentAddress(null)
-  }
-
-  const handleSaveAddress = (data: CreateAddressPayload | UpdateAddressPayload) => {
-    if (currentAddress) {
-      updateAddress({
-        id: currentAddress.id,
-        ...data
-      } as UpdateAddressPayload)
-    } else {
-      createAddress(data as CreateAddressPayload)
-    }
-  }
-
-  const handleDeleteAddress = (id: string) => {
-    deleteAddress(id)
-  }
-
-  const handleSetDefaultAddress = (id: string) => {
-    setDefaultAddress(id)
-  }
-  
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage)
-  }
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10))
-    setPage(0)
-  }
-
+  // Memoize addresses data
   const addresses = useMemo(() => addressData?.data || [], [addressData])
 
   return (

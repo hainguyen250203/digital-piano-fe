@@ -122,6 +122,7 @@ export const Endpoint = () => {
       vnpayReturnUrl: `${BASE_URL}/orders/verify-return-url`,
       myOrders: `${BASE_URL}/orders/me`,
       detail: (id: string) => `${BASE_URL}/orders/${id}`,
+      OrderDetailByUserId: (orderId: string) => `${BASE_URL}/orders/me/${orderId}`,
       updateStatus: (id: string) => `${BASE_URL}/orders/${id}/status`,
       userCancel: (id: string) => `${BASE_URL}/orders/${id}/user-cancel`,
       repayment: (id: string) => `${BASE_URL}/orders/${id}/repayment`,
@@ -163,7 +164,14 @@ export const Endpoint = () => {
       stock: `${BASE_URL}/statistical/stock`,
       dashboard: `${BASE_URL}/statistical/dashboard`,
     },
+
+    review: {
+      create: `${BASE_URL}/reviews`,
+      update: (id: string) => `${BASE_URL}/reviews/${id}`,
+      delete: (id: string) => `${BASE_URL}/reviews/${id}`,
+    },
   };
 };
+
 
 export default Endpoint;
