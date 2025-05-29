@@ -17,16 +17,16 @@ interface LayoutProps {
 function ClientLayoutContent({ children }: LayoutProps) {
   const pathname = usePathname()
   const [isAdminRoute, setIsAdminRoute] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   
   useEffect(() => {
     setIsAdminRoute(pathname?.startsWith('/admin') || false)
-    setMounted(true)
+    setIsClient(true)
   }, [pathname])
   
   // Use a simple loader to avoid hydration errors
-  if (!mounted) {
-    return <>{children}</>
+  if (!isClient) {
+    return <div suppressHydrationWarning>{children}</div>
   }
   
   if (isAdminRoute) {
@@ -49,16 +49,17 @@ function ClientLayoutContent({ children }: LayoutProps) {
  */
 export default function MainLayout({ children }: LayoutProps) {
   return (
-    <Box
-      sx={{
+    <div
+      style={{
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100vh',
-        bgcolor: '#ffffff',
+        backgroundColor: '#ffffff',
         position: 'relative'
       }}
+      suppressHydrationWarning
     >
       <ClientLayoutContent>{children}</ClientLayoutContent>
-    </Box>
+    </div>
   )
 }

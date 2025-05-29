@@ -154,6 +154,8 @@ export const Endpoint = () => {
       getNotificationsUser: `${BASE_URL}/notifications`,
       markAsRead: (id: string) => `${BASE_URL}/notifications/${id}/mark-as-read`,
       markAllAsRead: `${BASE_URL}/notifications/mark-all-as-read`,
+      deletedAllRead: `${BASE_URL}/notifications/read`,
+      deleteOne: (id: string) => `${BASE_URL}/notifications/${id}`,
     },
 
     statistics: {

@@ -1,90 +1,66 @@
 'use client'
 
-import { useFetchGetNotificationsUser, useMarkAllNotificationsAsRead, useMarkNotificationAsRead } from '@/hooks/apis/notification'
+import { useDeleteAllNotifications, useDeleteOneNotification, useFetchGetNotificationsUser, useMarkAllNotificationsAsRead, useMarkNotificationAsRead } from '@/hooks/apis/notification'
 import { useNotification } from '@/hooks/useNotification'
 import { NotificationType } from '@/types/notification.type'
 import { getAccessToken } from '@/utils/auth'
+import DeleteIcon from '@mui/icons-material/Delete'
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep'
 import DoneAllIcon from '@mui/icons-material/DoneAll'
 import NotificationsIcon from '@mui/icons-material/Notifications'
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'
 import NotificationsOffIcon from '@mui/icons-material/NotificationsOff'
-import {
-  Avatar,
-  Badge,
-  Box,
-  Button,
-  Chip,
-  Divider,
-  Fade,
-  IconButton,
-  List,
-  ListItemAvatar,
-  ListItemButton,
-  ListItemText,
-  Menu,
-  Tooltip,
-  Typography,
-  useTheme
-} from '@mui/material'
+import { Avatar, Badge, Box, Button, Chip, Divider, IconButton, List, ListItemAvatar, ListItemButton, ListItemText, Menu, Tooltip, Typography, useTheme } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
 // Icons for different notification types
 import InfoIcon from '@mui/icons-material/Info'
 import LocalOfferIcon from '@mui/icons-material/LocalOffer'
 import RateReviewIcon from '@mui/icons-material/RateReview'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
+import { toast } from 'react-toastify'
 
 export default function NotificationMenu() {
   const theme = useTheme()
+  const token = getAccessToken() || null
+  const { isConnected } = useNotification(token)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const open = Boolean(anchorEl)
-  const [token, setToken] = useState<string | null>(null)
-  const [hasNewNotifications, setHasNewNotifications] = useState(false)
 
-  const { data: notifications, refetch, isLoading } = useFetchGetNotificationsUser()
+  // Fetch notifications
+  const { data: notificationsData, isLoading, refetch: refetchNotifications } = useFetchGetNotificationsUser()
+  const notificationList = notificationsData?.data || []
+  const unreadCount = notificationList.filter(notification => !notification.isRead).length
+  const hasNewNotifications = unreadCount > 0
+
+  // Mutations
   const { mutate: markAsRead } = useMarkNotificationAsRead()
   const { mutate: markAllAsRead } = useMarkAllNotificationsAsRead()
-
-  // Get token on component mount
-  useEffect(() => {
-    const accessToken = getAccessToken()
-    if (accessToken) {
-      setToken(accessToken)
+  const { mutate: deleteAllRead, isPending: isDeleting } = useDeleteAllNotifications({
+    onSuccess: () => {
+      toast.success('Đã xóa tất cả thông báo đã đọc')
+      refetchNotifications()
+    },
+    onError: () => {
+      toast.error('Không thể xóa thông báo')
     }
-  }, [])
-
-  // Use the real-time notification hook
-  const { isConnected } = useNotification(token)
-
-  // Set up polling to fetch notifications every minute as a fallback
-  useEffect(() => {
-    const interval = setInterval(() => {
-      refetch()
-    }, 60000) // Poll every 60 seconds
-
-    return () => clearInterval(interval)
-  }, [refetch])
-
-  // Listen for new notifications via query cache updates
-  useEffect(() => {
-    if (notifications?.data && notifications.data.length > 0) {
-      const hasUnread = notifications.data.some(notification => !notification.isRead)
-      if (hasUnread) {
-        setHasNewNotifications(true)
-      }
+  })
+  const { mutate: deleteOne } = useDeleteOneNotification({
+    onSuccess: () => {
+      toast.success('Đã xóa thông báo')
+      refetchNotifications()
+    },
+    onError: () => {
+      toast.error('Không thể xóa thông báo')
+      
     }
-  }, [notifications])
-
-  const unreadCount = notifications?.data?.filter(notification => !notification.isRead).length || 0
-  const notificationList = notifications?.data || []
+  })
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
-    // Reset the new notifications indicator when menu is opened
-    setHasNewNotifications(false)
   }
 
   const handleClose = () => {
@@ -97,6 +73,15 @@ export default function NotificationMenu() {
 
   const handleMarkAllAsRead = () => {
     markAllAsRead()
+  }
+
+  const handleDeleteAllRead = () => {
+    deleteAllRead()
+  }
+
+  const handleDeleteNotification = (e: React.MouseEvent, notificationId: string) => {
+    e.stopPropagation()
+    deleteOne(notificationId)
   }
 
   // Function to get icon based on notification type
@@ -146,65 +131,19 @@ export default function NotificationMenu() {
   return (
     <>
       <Tooltip title={isConnected ? 'Thông báo' : 'Thông báo (Đang ngắt kết nối)'}>
-        <IconButton
-          onClick={handleClick}
-          color='inherit'
-          aria-controls={open ? 'notification-menu' : undefined}
-          aria-haspopup='true'
-          aria-expanded={open ? 'true' : undefined}
-          sx={{
-            position: 'relative',
-            transition: 'transform 0.2s',
-            '&:hover': {
-              transform: 'scale(1.1)'
-            },
-            ...(hasNewNotifications && {
-              '&::after': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                right: 0,
-                left: 0,
-                bottom: 0,
-                borderRadius: '50%',
-                animation: 'pulse 1.5s infinite',
-              },
-              '@keyframes pulse': {
-                '0%': { boxShadow: '0 0 0 0 rgba(255, 82, 82, 0.4)' },
-                '70%': { boxShadow: '0 0 0 10px rgba(255, 82, 82, 0)' },
-                '100%': { boxShadow: '0 0 0 0 rgba(255, 82, 82, 0)' }
-              }
-            })
-          }}
-        >
+        <IconButton onClick={handleClick} color='inherit' aria-controls={open ? 'notification-menu' : undefined} aria-haspopup='true' aria-expanded={open ? 'true' : undefined}>
           <Badge
             badgeContent={unreadCount}
             color={hasNewNotifications ? 'warning' : 'error'}
             showZero={false}
-            overlap="circular"
+            overlap='circular'
             sx={{
               '& .MuiBadge-badge': {
                 backgroundColor: isConnected ? undefined : theme.palette.text.disabled
               }
             }}
           >
-            {!isConnected ? (
-              <NotificationsOffIcon color="disabled" />
-            ) : hasNewNotifications ? (
-              <NotificationsActiveIcon 
-                sx={{ 
-                  color: theme.palette.warning.main,
-                  animation: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
-                  '@keyframes shake': {
-                    '0%, 100%': { transform: 'rotate(0)' },
-                    '20%, 60%': { transform: 'rotate(8deg)' },
-                    '40%, 80%': { transform: 'rotate(-8deg)' }
-                  }
-                }} 
-              />
-            ) : (
-              <NotificationsIcon />
-            )}
+            {!isConnected ? <NotificationsOffIcon color='disabled' /> : hasNewNotifications ? <NotificationsActiveIcon sx={{ color: theme.palette.warning.main }} /> : <NotificationsIcon />}
           </Badge>
         </IconButton>
       </Tooltip>
@@ -226,38 +165,49 @@ export default function NotificationMenu() {
         }}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-        TransitionComponent={Fade}
-        transitionDuration={200}
+        slotProps={{
+          paper: {
+            elevation: 3,
+            sx: {
+              overflow: 'visible',
+              filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.1))'
+            }
+          }
+        }}
       >
-        <Box sx={{ 
-          p: 2, 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : theme.palette.background.default,
-          position: 'sticky',
-          top: 0,
-          zIndex: 1,
-          boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-        }}>
+        <Box
+          sx={{
+            p: 2,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            backgroundColor: theme.palette.background.paper,
+            position: 'sticky',
+            top: 0,
+            zIndex: 1,
+            boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+          }}
+        >
           <Typography variant='h6' sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <NotificationsIcon fontSize="small" sx={{ verticalAlign: 'middle' }} /> 
+            <NotificationsIcon fontSize='small' sx={{ verticalAlign: 'middle' }} />
             Thông báo
           </Typography>
-          {unreadCount > 0 && (
-            <Tooltip title="Đánh dấu tất cả đã đọc">
-              <Button 
-                size='small' 
-                variant="text"
-                color="primary"
-                startIcon={<DoneAllIcon />} 
-                onClick={handleMarkAllAsRead}
-                sx={{ minWidth: 'unset' }}
-              >
-                Đọc tất cả
-              </Button>
-            </Tooltip>
-          )}
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            {unreadCount > 0 && (
+              <Tooltip title='Đánh dấu tất cả đã đọc'>
+                <Button size='small' variant='text' color='primary' startIcon={<DoneAllIcon />} onClick={handleMarkAllAsRead} sx={{ minWidth: 'unset' }}>
+                  Đọc tất cả
+                </Button>
+              </Tooltip>
+            )}
+            {notificationList.some(notification => notification.isRead) && (
+              <Tooltip title='Xóa tất cả thông báo đã đọc'>
+                <IconButton size='small' color='error' onClick={handleDeleteAllRead} disabled={isDeleting}>
+                  <DeleteSweepIcon fontSize='small' />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
         </Box>
         <Divider />
 
@@ -266,105 +216,100 @@ export default function NotificationMenu() {
             <Typography color='text.secondary'>Đang tải thông báo...</Typography>
           </Box>
         ) : !notificationList.length ? (
-          <Box sx={{ py: 8, px: 2, textAlign: 'center' }}>
-            <Avatar sx={{ width: 60, height: 60, mx: 'auto', mb: 2, bgcolor: theme.palette.background.paper }}>
-              <NotificationsOffIcon fontSize="large" sx={{ color: theme.palette.text.disabled }} />
+          <Box sx={{ py: 6, px: 2, textAlign: 'center' }}>
+            <Avatar sx={{ width: 50, height: 50, mx: 'auto', mb: 2, bgcolor: alpha(theme.palette.background.paper, 0.8) }}>
+              <NotificationsOffIcon sx={{ color: theme.palette.text.disabled }} />
             </Avatar>
-            <Typography color='text.secondary' variant="body1" sx={{ mb: 1 }}>
+            <Typography color='text.secondary' variant='body1' sx={{ mb: 1 }}>
               Không có thông báo
             </Typography>
-            <Typography color='text.disabled' variant="body2">
+            <Typography color='text.disabled' variant='body2'>
               Bạn sẽ nhận được thông báo khi có cập nhật mới
             </Typography>
           </Box>
         ) : (
           <List sx={{ p: 0 }} disablePadding>
             {notificationList.map(notification => (
-              <Fade key={notification.id} in={true} timeout={300}>
-                <Box>
-                  <ListItemButton
-                    alignItems='flex-start'
-                    divider
-                    dense
-                    onClick={() => !notification.isRead && handleMarkAsRead(notification.id)}
-                    sx={{
-                      py: 1.5,
-                      px: 2,
-                      backgroundColor: notification.isRead ? 'inherit' : alpha(theme.palette.primary.main, 0.08),
-                      '&:hover': {
-                        backgroundColor: alpha(theme.palette.primary.main, 0.12),
-                      }
-                    }}
-                  >
-                    <ListItemAvatar>
-                      <Avatar 
-                        sx={{ 
-                          bgcolor: alpha(getNotificationColor(notification.type), 0.1),
-                          color: getNotificationColor(notification.type)
-                        }}
-                      >
-                        {getNotificationIcon(notification.type)}
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
-                          <Typography 
-                            variant="subtitle2" 
-                            sx={{ 
-                              fontWeight: notification.isRead ? 500 : 700,
-                              color: theme.palette.text.primary,
-                              flexGrow: 1,
-                              pr: 1
-                            }}
-                          >
-                            {notification.title}
-                          </Typography>
-                          <Chip 
-                            label={getNotificationLabel(notification.type)} 
-                            size="small"
-                            variant="outlined"
-                            sx={{ 
-                              height: 20, 
-                              fontSize: '0.7rem',
-                              color: getNotificationColor(notification.type),
-                              borderColor: getNotificationColor(notification.type)
-                            }} 
-                          />
-                        </Box>
-                      }
-                      secondary={
-                        <>
-                          <Typography 
-                            variant='body2' 
-                            component='span' 
-                            color='text.secondary'
-                            sx={{
-                              display: 'block',
-                              fontSize: '0.875rem'
-                            }}
-                          >
-                            {notification.content}
-                          </Typography>
-                          <Typography 
-                            variant='caption' 
-                            display='block' 
-                            color='text.disabled' 
-                            sx={{ mt: 0.5, fontSize: '0.75rem' }}
-                          >
-                            {formatDistanceToNow(new Date(notification.createdAt), { 
+              <Box key={notification.id}>
+                <ListItemButton
+                  alignItems='flex-start'
+                  divider
+                  dense
+                  onClick={() => !notification.isRead && handleMarkAsRead(notification.id)}
+                  sx={{
+                    'py': 1.5,
+                    'px': 2,
+                    'backgroundColor': notification.isRead ? 'inherit' : alpha(theme.palette.primary.main, 0.08),
+                    '&:hover': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.12)
+                    }
+                  }}
+                >
+                  <ListItemAvatar>
+                    <Avatar
+                      sx={{
+                        bgcolor: alpha(getNotificationColor(notification.type), 0.1),
+                        color: getNotificationColor(notification.type)
+                      }}
+                    >
+                      {getNotificationIcon(notification.type)}
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
+                        <Typography
+                          variant='subtitle2'
+                          sx={{
+                            fontWeight: notification.isRead ? 500 : 700,
+                            color: theme.palette.text.primary,
+                            flexGrow: 1,
+                            pr: 1
+                          }}
+                        >
+                          {notification.title}
+                        </Typography>
+                        <Chip
+                          label={getNotificationLabel(notification.type)}
+                          size='small'
+                          variant='outlined'
+                          sx={{
+                            height: 20,
+                            fontSize: '0.7rem',
+                            color: getNotificationColor(notification.type),
+                            borderColor: getNotificationColor(notification.type)
+                          }}
+                        />
+                      </Box>
+                    }
+                    secondary={
+                      <>
+                        <Typography
+                          variant='body2'
+                          component='span'
+                          color='text.secondary'
+                          sx={{
+                            display: 'block',
+                            fontSize: '0.875rem'
+                          }}
+                        >
+                          {notification.content}
+                        </Typography>
+                        <Box sx={{ mt: 0.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Typography variant='caption' color='text.disabled' sx={{ fontSize: '0.75rem' }}>
+                            {formatDistanceToNow(new Date(notification.createdAt), {
                               addSuffix: true,
-                              locale: vi 
+                              locale: vi
                             })}
                             {!notification.isRead && (
-                              <Tooltip title="Chưa đọc">
-                                <Box 
-                                  component="span" 
-                                  sx={{ 
+                              <Tooltip title='Chưa đọc'>
+                                <Box
+                                  component='span'
+                                  sx={{
                                     display: 'inline-block',
-                                    width: 8, 
-                                    height: 8, 
-                                    borderRadius: '50%', 
+                                    width: 8,
+                                    height: 8,
+                                    borderRadius: '50%',
                                     bgcolor: theme.palette.primary.main,
                                     ml: 1,
                                     verticalAlign: 'middle'
@@ -373,12 +318,25 @@ export default function NotificationMenu() {
                               </Tooltip>
                             )}
                           </Typography>
-                        </>
-                      }
-                    />
-                  </ListItemButton>
-                </Box>
-              </Fade>
+                          <Tooltip title='Xóa thông báo'>
+                            <IconButton
+                              size='small'
+                              color='error'
+                              onClick={e => handleDeleteNotification(e, notification.id)}
+                              sx={{
+                                'opacity': 0.7,
+                                '&:hover': { opacity: 1 }
+                              }}
+                            >
+                              <DeleteIcon fontSize='small' />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </>
+                    }
+                  />
+                </ListItemButton>
+              </Box>
             ))}
           </List>
         )}

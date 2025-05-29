@@ -19,4 +19,14 @@ export const markAllNotificationsAsRead = async (): Promise<BaseResponse<void>> 
   return response.data;
 }
 
+export const deleteAllNotifications = async (): Promise<BaseResponse<void>> => {
+  const response = await API.delete(Endpoint().notification.deletedAllRead);
+  return response.data;
+}
+
+export const deleteOneNotification = async (notificationId: string): Promise<BaseResponse<void>> => {
+  const response = await API.delete(Endpoint().notification.deleteOne(notificationId));
+  return response.data;
+}
+
 
