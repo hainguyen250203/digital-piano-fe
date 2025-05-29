@@ -79,6 +79,18 @@ export type ProductDetailData = {
   stock: {
     quantity: number;
   } | null;
+  reviews: {
+    id: string;
+    rating: number;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+    user: {
+      id: string;
+      email: string;
+      avatarUrl: string | null;
+    }
+  }[]
 };
 
 export const useFetchProductList = () => {
