@@ -20,15 +20,27 @@ export default function OrderRow({ order, isUserCancelOrderLoading, onOpenDetail
           {order.id}
         </Typography>
       </TableCell>
-      <TableCell>{formatDateTimeFromAny(order.createdAt)}</TableCell>
+      <TableCell>
+        <Typography variant='body2'>
+          {formatDateTimeFromAny(order.createdAt)}
+        </Typography>
+      </TableCell>
       <TableCell>
         <Chip icon={getStatusIcon(order.orderStatus)} label={getStatusText(order.orderStatus)} size='small' color={getStatusColor(order.orderStatus)} />
       </TableCell>
       <TableCell>
         <Chip label={getPaymentStatusText(order.paymentStatus)} size='small' color={getPaymentStatusColor(order.paymentStatus)} />
       </TableCell>
-      <TableCell>{formatPaymentMethod(order.paymentMethod)}</TableCell>
-      <TableCell>{formatNumber(order.orderTotal)} VNĐ</TableCell>
+      <TableCell>
+        <Typography variant='body2'>
+          {formatPaymentMethod(order.paymentMethod)}
+        </Typography>
+      </TableCell>
+      <TableCell>
+        <Typography variant='subtitle2' fontWeight={600} color="primary.main">
+          {formatNumber(order.orderTotal)} VNĐ
+        </Typography>
+      </TableCell>
       <TableCell>
         <OrderActions order={order} isUserCancelOrderLoading={isUserCancelOrderLoading} onOpenDetail={onOpenDetail} onCancelOrder={onCancelOrder} onOrderStatusChange={onOrderStatusChange} />
       </TableCell>

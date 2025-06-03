@@ -15,14 +15,26 @@ export default function OrderStatusFilter({ statusFilter, onStatusFilterChange }
         </Typography>
         <Select value={statusFilter} onChange={onStatusFilterChange}>
           <MenuItem value='all'>Tất cả đơn hàng</MenuItem>
-          <MenuItem value={OrderStatus.PENDING}>Chờ xác nhận</MenuItem>
-          <MenuItem value={OrderStatus.PROCESSING}>Đang xử lý</MenuItem>
-          <MenuItem value={OrderStatus.SHIPPING}>Đang giao hàng</MenuItem>
-          <MenuItem value={OrderStatus.DELIVERED}>Đã giao hàng</MenuItem>
-          <MenuItem value={OrderStatus.CANCELLED}>Đã hủy</MenuItem>
-          <MenuItem value={OrderStatus.RETURNED}>Đã trả hàng</MenuItem>
+          <MenuItem value={OrderStatus.PENDING}>
+            <Typography variant='caption'>Chờ xác nhận</Typography>
+          </MenuItem>
+          <MenuItem value={OrderStatus.PROCESSING}>
+            <Typography variant='caption'>Đang xử lý</Typography>
+          </MenuItem>
+          <MenuItem value={OrderStatus.SHIPPING}>
+            <Typography variant='caption'>Đang giao hàng</Typography>
+          </MenuItem>
+          <MenuItem value={OrderStatus.DELIVERED}>
+            <Typography variant='caption'>Đã giao hàng</Typography>
+          </MenuItem>
+          <MenuItem value={OrderStatus.CANCELLED}>
+            <Typography variant='caption'>Đã hủy</Typography>
+          </MenuItem>
+          <MenuItem value={OrderStatus.RETURNED}>
+            <Typography variant='caption'>Đã trả hàng</Typography>
+          </MenuItem>
         </Select>
       </FormControl>
     </Box>
   )
-} 
+}

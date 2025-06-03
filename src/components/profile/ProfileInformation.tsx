@@ -42,7 +42,7 @@ export default function ProfileInformation({ profileData, onUpdateProfile, onUpd
     <Card elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
       <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 2, px: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
         <PersonIcon />
-        <Typography variant='h6' component='h2' fontWeight={600}>
+        <Typography variant='h6' component='h2'>
           Thông Tin Cá Nhân
         </Typography>
       </Box>
@@ -104,15 +104,15 @@ export default function ProfileInformation({ profileData, onUpdateProfile, onUpd
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1, gap: 2 }}>
             {!isEditing ? (
               <Button variant='contained' color='primary' onClick={handleStartEdit} fullWidth size='medium' startIcon={<EditIcon />}>
-                Chỉnh Sửa Thông Tin
+                <Typography variant='caption'>Chỉnh Sửa Thông Tin</Typography>
               </Button>
             ) : (
               <>
                 <Button variant='outlined' onClick={handleCancelEdit} size='medium' startIcon={<CancelIcon />}>
-                  Hủy
+                  <Typography variant='caption'>Hủy</Typography>
                 </Button>
                 <Button type='submit' variant='contained' color='primary' disabled={isUpdatingProfile || isUpdatingAvatar} size='medium' startIcon={<SaveIcon />}>
-                  {isUpdatingProfile || isUpdatingAvatar ? 'Đang Lưu...' : 'Lưu'}
+                  <Typography variant='caption'>{isUpdatingProfile || isUpdatingAvatar ? 'Đang Lưu...' : 'Lưu'}</Typography>
                 </Button>
               </>
             )}

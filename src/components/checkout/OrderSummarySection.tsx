@@ -28,7 +28,7 @@ export default function OrderSummarySection({
   return (
     <Card sx={{ mb: 3 }}>
       <CardContent>
-        <Typography variant='h6' gutterBottom>
+        <Typography variant='h5' fontWeight={600} gutterBottom>
           Đơn Hàng
         </Typography>
         <Divider sx={{ mb: 2 }} />
@@ -74,19 +74,19 @@ export default function OrderSummarySection({
         {/* Order Totals */}
         <Stack spacing={1} sx={{ mb: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography>Tạm tính</Typography>
-            <Typography>{formatCurrency(cartSubtotal)}</Typography>
+            <Typography variant="body2">Tạm tính</Typography>
+            <Typography variant="body2">{formatCurrency(cartSubtotal)}</Typography>
           </Box>
           {discountAmount > 0 && (
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography>Giảm giá</Typography>
-              <Typography color='error'>- {formatCurrency(discountAmount)}</Typography>
+              <Typography variant="body2">Giảm giá</Typography>
+              <Typography variant="body2" color='error'>- {formatCurrency(discountAmount)}</Typography>
             </Box>
           )}
           <Divider />
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant='h6'>Tổng cộng</Typography>
-            <Typography variant='h6' color='primary'>
+            <Typography variant='subtitle1' fontWeight={600}>Tổng cộng</Typography>
+            <Typography variant='subtitle1' fontWeight={600} color='primary'>
               {formatCurrency(finalTotal)}
             </Typography>
           </Box>

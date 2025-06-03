@@ -27,7 +27,6 @@ interface FooterSectionProps {
 const FooterLink = styled(Link)(() => ({
   'color': '#333333',
   'textDecoration': 'none',
-  'fontSize': '14px',
   'transition': 'all 0.2s ease',
   'display': 'flex',
   'alignItems': 'center',
@@ -197,33 +196,34 @@ const Footer = () => {
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <FooterLink href='tel:+84819003282' sx={{ mb: 2 }}>
                   <PhoneIcon sx={{ mr: 1, fontSize: 18, color: '#1976d2' }} />
-                  <span>0819 003 282</span>
+                  <Typography variant='body2'>0819 003 282</Typography>
                 </FooterLink>
 
-                <FooterLink href='https://m.me/hdmusic' target='_blank' sx={{ mb: 2 }}>
-                  <ChatIcon sx={{ mr: 1, fontSize: 18, color: '#1976d2' }} />
-                  <span>Messenger</span>
-                </FooterLink>
-
-                <FooterLink href='https://fb.com/hdmusic' target='_blank' sx={{ mb: 2 }}>
-                  <FacebookIcon sx={{ mr: 1, fontSize: 18, color: '#1976d2' }} />
-                  <span>Facebook</span>
-                </FooterLink>
-
-                <FooterLink href='mailto:info@hdmusic.vn'>
+                <FooterLink href='mailto:info@hdmusic.vn' sx={{ mb: 2 }}>
                   <EmailIcon sx={{ mr: 1, fontSize: 18, color: '#1976d2' }} />
-                  <span>info@hdmusic.vn</span>
+                  <Typography variant='body2'>info@hdmusic.vn</Typography>
                 </FooterLink>
+
+                <FooterLink href='#' sx={{ mb: 2 }}>
+                  <ChatIcon sx={{ mr: 1, fontSize: 18, color: '#1976d2' }} />
+                  <Typography variant='body2'>Live chat</Typography>
+                </FooterLink>
+
+                <Box sx={{ display: 'flex', mt: 1, gap: 2 }}>
+                  <IconButton size='small' aria-label='facebook' color='primary' sx={{ bgcolor: '#e3f2fd' }}>
+                    <FacebookIcon fontSize='small' />
+                  </IconButton>
+                </Box>
               </Box>
             </FooterSection>
           </Box>
 
           <Box>
-            <FooterSection title='Liên Kết Nhanh' id='quick-links' isOpen={isQuickLinksOpen} onToggle={toggleQuickLinks}>
+            <FooterSection title='Danh Mục' id='quick-links' isOpen={isQuickLinksOpen} onToggle={toggleQuickLinks}>
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                {quickLinks.map(link => (
-                  <FooterLink key={link.name} href={link.url}>
-                    {link.name}
+                {quickLinks.map((link, index) => (
+                  <FooterLink href={link.url} key={index}>
+                    <Typography variant='body2'>{link.name}</Typography>
                   </FooterLink>
                 ))}
               </Box>
@@ -233,35 +233,27 @@ const Footer = () => {
           <Box>
             <FooterSection title='Chính Sách' id='policies' isOpen={isPoliciesOpen} onToggle={togglePolicies}>
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                {policies.map(policy => (
-                  <FooterLink key={policy.name} href={policy.url}>
-                    {policy.name}
+                {policies.map((policy, index) => (
+                  <FooterLink href={policy.url} key={index}>
+                    <Typography variant='body2'>{policy.name}</Typography>
                   </FooterLink>
                 ))}
               </Box>
             </FooterSection>
           </Box>
         </Box>
-
-        <Divider sx={{ my: 4, backgroundColor: 'rgba(0, 0, 0, 0.1)' }} />
-
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant='body2' sx={{ opacity: 0.6, mb: { xs: 2, sm: 0 } }}>
-            © {new Date().getFullYear()} HD Music. Tất cả quyền được bảo lưu.
+        
+        <Divider sx={{ my: 4 }} />
+        
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'center', sm: 'flex-start' }, gap: 2 }}>
+          <Typography variant='caption' sx={{ opacity: 0.8, textAlign: { xs: 'center', sm: 'left' } }}>
+            © {new Date().getFullYear()} HD Music. Đã đăng ký bản quyền.
           </Typography>
-
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <IconButton size='small' sx={{ 'color': '#1976d2', 'bgcolor': 'rgba(0, 0, 0, 0.04)', '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.08)' } }} aria-label='Facebook'>
-              <FacebookIcon fontSize='small' />
-            </IconButton>
-            <IconButton size='small' sx={{ 'color': '#1976d2', 'bgcolor': 'rgba(0, 0, 0, 0.04)', '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.08)' } }} aria-label='Email'>
-              <EmailIcon fontSize='small' />
-            </IconButton>
-            <IconButton size='small' sx={{ 'color': '#1976d2', 'bgcolor': 'rgba(0, 0, 0, 0.04)', '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.08)' } }} aria-label='Phone'>
-              <PhoneIcon fontSize='small' />
-            </IconButton>
-          </Box>
+          <Typography variant='caption' sx={{ opacity: 0.8, textAlign: { xs: 'center', sm: 'right' } }}>
+            Thiết kế bởi <Link href='#' color='primary' underline='hover'>Music Team</Link>
+          </Typography>
         </Box>
+
       </Container>
     </Box>
   )

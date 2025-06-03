@@ -101,7 +101,7 @@ const CartItem = ({ item }: CartItemProps) => {
         <Box sx={{ minWidth: 0 }}>
           <Link href={`/products/${product.id}`} sx={{ textDecoration: 'none', display: 'block' }}>
             <Typography
-              variant='body1'
+              variant='subtitle2'
               sx={{
                 'display': '-webkit-box',
                 'WebkitLineClamp': 2,
@@ -128,12 +128,11 @@ const CartItem = ({ item }: CartItemProps) => {
             {product.salePrice > 0 ? (
               <>
                 <Typography
-                  variant='body2'
+                  variant='caption'
                   color='text.secondary'
                   component='span'
                   sx={{
                     textDecoration: 'line-through',
-                    fontSize: '0.75rem',
                     mr: 1
                   }}
                 >

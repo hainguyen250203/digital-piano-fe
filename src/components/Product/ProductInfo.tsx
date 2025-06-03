@@ -58,7 +58,6 @@ export default function ProductInfo({ product, isProductInWishlist, isProductAdd
         sx={{
           fontWeight: 700,
           mb: 2,
-          fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
           color: 'text.primary'
         }}
       >
@@ -66,7 +65,7 @@ export default function ProductInfo({ product, isProductInWishlist, isProductAdd
       </Typography>
 
       {/* Brand */}
-      <Typography variant='body1' color='text.secondary' sx={{ mb: 2 }}>
+      <Typography variant='subtitle1' color='text.secondary' sx={{ mb: 2 }}>
         Thương hiệu: <span style={{ fontWeight: 600 }}>{product.brand.name}</span>
       </Typography>
 
@@ -92,7 +91,7 @@ export default function ProductInfo({ product, isProductInWishlist, isProductAdd
           <Box>
             <Typography variant='body2' color='text.secondary'>
               Giá gốc:{' '}
-              <Typography component='span' sx={{ textDecoration: 'line-through' }}>
+              <Typography component='span' variant='body2' sx={{ textDecoration: 'line-through' }}>
                 {formatCurrency(product.price)}
               </Typography>
             </Typography>
@@ -121,15 +120,15 @@ export default function ProductInfo({ product, isProductInWishlist, isProductAdd
       >
         {isOutOfStock ? (
           <>
-            <Typography variant='body1' fontWeight={600} color='error' sx={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 5, backgroundColor: 'error.main', marginRight: 8 }}></span>
+            <Typography variant='subtitle1' fontWeight={600} color='error' sx={{ display: 'flex', alignItems: 'center' }}>
+              <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 5, backgroundColor: '#f44336', marginRight: 8 }}></span>
               Hết hàng
             </Typography>
           </>
         ) : (
           <>
-            <Typography variant='body1' fontWeight={600} color='success.main' sx={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 5, backgroundColor: 'success.main', marginRight: 8 }}></span>
+            <Typography variant='subtitle1' fontWeight={600} color='success.main' sx={{ display: 'flex', alignItems: 'center' }}>
+              <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 5, backgroundColor: '#4caf50', marginRight: 8 }}></span>
               Còn hàng ({product.stock?.quantity})
             </Typography>
           </>
@@ -156,7 +155,6 @@ export default function ProductInfo({ product, isProductInWishlist, isProductAdd
             'fontWeight': 'bold',
             'boxShadow': 2,
             'textTransform': 'none',
-            'fontSize': '1rem',
             '&:hover': {
               boxShadow: 3
             },

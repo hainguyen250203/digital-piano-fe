@@ -4,6 +4,7 @@ import MainLayout from '@/components/layout/MainLayout'
 import AppProviders from '@/components/providers/AppProviders'
 import { Analytics } from '@vercel/analytics/next'
 import { Inter } from 'next/font/google'
+import { usePathname } from 'next/navigation'
 import Script from 'next/script'
 import { ReactNode } from 'react'
 import './globals.css'
@@ -26,13 +27,16 @@ interface LayoutProps {
  * Provides the font and all app providers
  */
 export default function RootLayout({ children }: LayoutProps) {
+  const pathname = usePathname()
+  const isAdminPage = pathname?.startsWith('/admin')
+
   return (
     <html lang='vi' suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
         <AppProviders>
           <MainLayout>{children}</MainLayout>
         </AppProviders>
-        <Script src='https://cdn.fchat.vn/assets/embed/webchat.js?id=682e9b63967c00bb1a0f8746' strategy='afterInteractive' />
+        {!isAdminPage && <Script src='https://cdn.fchat.vn/assets/embed/webchat.js?id=682e9b63967c00bb1a0f8746' strategy='afterInteractive' />}
         <Analytics />
       </body>
     </html>

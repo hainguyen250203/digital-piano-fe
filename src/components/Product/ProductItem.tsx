@@ -4,10 +4,9 @@ import { useCartWishlist } from '@/context/CartWishlistContext'
 import { ProductListData } from '@/hooks/apis/product'
 import { formatCurrency } from '@/utils/format'
 import { AddShoppingCart, Favorite } from '@mui/icons-material'
-import { alpha, Badge, Box, Card, CardContent, Chip, CircularProgress, IconButton, styled, Tooltip, Typography, useTheme } from '@mui/material'
+import { alpha, Box, Card, CardContent, Chip, CircularProgress, IconButton, styled, Tooltip, Typography } from '@mui/material'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
 
 // Type definitions
 type TagType = 'hot' | 'featured'
@@ -53,13 +52,12 @@ const StyledCardMedia = styled(Box)({
   transition: 'transform 0.5s ease'
 })
 
-const Tag = styled(Box)<TagProps>(({ theme, type }) => ({
+const Tag = styled(Typography)<TagProps>(({ theme, type }) => ({
   position: 'absolute',
   top: 8,
   left: 8,
   padding: '4px 8px',
   borderRadius: '4px',
-  fontSize: '0.75rem',
   fontWeight: 'bold',
   color: '#fff',
   zIndex: 1,
@@ -104,24 +102,6 @@ const ProductCardWrapper = styled(Box)({
   }
 })
 
-// Product name with exactly one line and ellipsis
-const ProductName = styled(Typography)({
-  'display': '-webkit-box',
-  'WebkitLineClamp': 1,
-  'WebkitBoxOrient': 'vertical',
-  'overflow': 'hidden',
-  'textOverflow': 'ellipsis',
-  'whiteSpace': 'normal',
-  'lineHeight': '1.5rem',
-  'maxHeight': '1.5rem',
-  'fontWeight': 600,
-  'cursor': 'pointer',
-  'marginBottom': '8px',
-  '&:hover': {
-    textDecoration: 'underline'
-  }
-})
-
 const StockOverlay = styled(Box)(({ theme }) => ({
   position: 'absolute',
   top: 0,
@@ -141,7 +121,6 @@ const DiscountTag = styled(Chip)(({ theme }) => ({
   left: 8,
   backgroundColor: theme.palette.error.main,
   color: theme.palette.common.white,
-  fontSize: '0.75rem',
   fontWeight: 'bold',
   zIndex: 1,
   height: 24
@@ -154,7 +133,6 @@ interface StockIndicatorProps {
 const StockIndicator = styled(Typography, {
   shouldForwardProp: prop => prop !== 'instock'
 })<StockIndicatorProps>(({ theme, instock }) => ({
-  fontSize: '0.75rem',
   color: instock ? theme.palette.success.main : theme.palette.error.main,
   display: 'flex',
   alignItems: 'center',
@@ -163,16 +141,12 @@ const StockIndicator = styled(Typography, {
 
 const CategoryChip = styled(Chip)(({ theme }) => ({
   height: 20,
-  fontSize: '0.7rem',
+  fontWeight: 500,
   backgroundColor: alpha(theme.palette.primary.main, 0.1),
-  color: theme.palette.primary.main,
-  fontWeight: 500
+  color: theme.palette.primary.main
 }))
 
 export default function ProductItem({ product }: ProductItemProps) {
-  const [hovered, setHovered] = useState(false)
-  const theme = useTheme()
-  
   const { 
     addToWishlist, 
     addToCart, 
@@ -202,7 +176,7 @@ export default function ProductItem({ product }: ProductItemProps) {
   }
 
   return (
-    <ProductCardWrapper onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+    <ProductCardWrapper>
       <ProductCard sx={{ opacity: isOutOfStock ? 0.7 : 1 }}>
         <MediaContainer>
           <StyledCardMedia className='image-zoom'>
@@ -227,6 +201,7 @@ export default function ProductItem({ product }: ProductItemProps) {
           {product.isHotSale && (
             <Tag
               type='hot'
+              variant='caption'
               sx={{
                 left: discountPercentage ? 8 : 8,
                 top: discountPercentage ? 40 : 8
@@ -240,6 +215,7 @@ export default function ProductItem({ product }: ProductItemProps) {
           {product.isFeatured && (
             <Tag
               type='featured'
+              variant='caption'
               sx={{
                 left: discountPercentage ? 8 : 8,
                 top: discountPercentage ? (product.isHotSale ? 72 : 40) : product.isHotSale ? 40 : 8
@@ -249,126 +225,111 @@ export default function ProductItem({ product }: ProductItemProps) {
             </Tag>
           )}
 
-          {/* Add to Cart & Wishlist buttons with improved tooltips */}
-          <IconButtonContainer className='action-buttons' sx={{ opacity: hovered || isProductAddingToCart || isProductAddingToWishlist ? 1 : 0 }}>
-            {/* Add to Cart Button */}
-            <Tooltip title={isOutOfStock ? 'Hết Hàng' : isProductAddingToCart ? 'Đang thêm vào giỏ...' : 'Thêm Vào Giỏ'} placement='left' arrow enterDelay={500} leaveDelay={200}>
+          {/* Out Of Stock Overlay */}
+          {isOutOfStock && (
+            <StockOverlay>
+              <Typography variant="subtitle1" sx={{ color: 'error.main', bgcolor: 'background.paper', py: 1, px: 3, borderRadius: 1, fontWeight: 'bold' }}>
+                Hết Hàng
+              </Typography>
+            </StockOverlay>
+          )}
+
+          {/* Action Buttons */}
+          <IconButtonContainer className='action-buttons'>
+            <Tooltip title='Thêm vào giỏ hàng'>
               <span>
-                <ActionIconButton
-                  size='small'
-                  color='primary'
-                  sx={{
-                    '&:hover': {
-                      bgcolor: alpha(theme.palette.primary.main, 0.1)
-                    },
-                    ...(isProductAddingToCart && {
-                      bgcolor: alpha(theme.palette.primary.main, 0.1)
-                    })
-                  }}
-                  disabled={isOutOfStock || isProductAddingToCart}
+                <ActionIconButton 
+                  aria-label='add to cart' 
+                  color='primary' 
+                  disabled={isProductAddingToCart || isOutOfStock}
                   onClick={handleAddToCart}
-                  aria-label='Add to cart'
                 >
-                  {isProductAddingToCart ? <CircularProgress size={20} color='primary' /> : <AddShoppingCart fontSize='small' color={isOutOfStock ? 'disabled' : 'primary'} />}
+                  {isProductAddingToCart ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <AddShoppingCart fontSize='small' />
+                  )}
                 </ActionIconButton>
               </span>
             </Tooltip>
-
-            {/* Add to Wishlist Button */}
-            <Tooltip title={isProductAddingToWishlist ? 'Đang thêm vào yêu thích...' : isProductInWishlist ? 'Đã Yêu Thích' : 'Thêm Vào Yêu Thích'} placement='left' arrow enterDelay={500} leaveDelay={200}>
-              <ActionIconButton
-                size='small'
-                color='default'
-                sx={{
-                  '&:hover': {
-                    bgcolor: alpha(theme.palette.error.main, 0.1)
-                  },
-                  ...(isProductAddingToWishlist && {
-                    bgcolor: alpha(theme.palette.error.main, 0.1)
-                  }),
-                  ...(isProductInWishlist && {
-                    bgcolor: alpha(theme.palette.error.main, 0.1)
-                  })
-                }}
-                onClick={handleAddToWishlist}
-                aria-label='Add to wishlist'
+            <Tooltip title={isProductInWishlist ? 'Đã thêm vào yêu thích' : 'Thêm vào yêu thích'}>
+              <ActionIconButton 
+                aria-label='add to wishlist' 
+                color={isProductInWishlist ? 'error' : 'default'}
                 disabled={isProductAddingToWishlist}
+                onClick={handleAddToWishlist}
               >
                 {isProductAddingToWishlist ? (
-                  <CircularProgress size={20} color='error' />
+                  <CircularProgress size={20} />
                 ) : (
-                  <Favorite fontSize='small' color={isProductInWishlist || hovered ? 'error' : 'action'} />
+                  <Favorite fontSize='small' />
                 )}
               </ActionIconButton>
             </Tooltip>
           </IconButtonContainer>
-
-          {/* Out of stock overlay */}
-          {isOutOfStock && (
-            <StockOverlay>
-              <Badge
-                badgeContent={'Hết Hàng'}
-                color='error'
-                sx={{
-                  '& .MuiBadge-badge': {
-                    fontSize: '1rem',
-                    height: 'auto',
-                    padding: '8px 12px',
-                    borderRadius: '4px'
-                  }
-                }}
-              />
-            </StockOverlay>
-          )}
         </MediaContainer>
 
-        <CardContent sx={{ flexGrow: 1, p: 2 }}>
-          {/* Category */}
-          {product.subCategory && (
-            <Box sx={{ mb: 1 }}>
-              <CategoryChip label={product.subCategory.name} size='small' />
-            </Box>
-          )}
-
-          {/* Product Name with Tooltip */}
-          <Link href={`/products/${product.id}`} passHref style={{ textDecoration: 'none', color: 'inherit' }}>
-            <Tooltip title={product.name} placement='top' arrow>
-              <ProductName variant='subtitle1'>{product.name}</ProductName>
-            </Tooltip>
-          </Link>
-
-          {/* Price Display */}
-          <Box sx={{ mt: 1 }}>
-            {product.salePrice ? (
-              <Box display='flex' alignItems='center' gap={1}>
-                <Typography variant='body1' color='error' fontWeight='bold'>
-                  {formatCurrency(product.salePrice)}
-                </Typography>
-                <Typography variant='body2' color='text.secondary' sx={{ textDecoration: 'line-through' }}>
-                  {formatCurrency(product.price)}
-                </Typography>
-              </Box>
-            ) : (
-              <Typography variant='body1' fontWeight='bold'>
-                {formatCurrency(product.price)}
-              </Typography>
+        <CardContent sx={{ p: 2, pt: 1.5, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ mb: 0.5, display: 'flex', gap: 0.5 }}>
+            {product.productType?.name && (
+              <CategoryChip
+                label={product.productType.name}
+                size='small'
+              />
             )}
           </Box>
 
-          {/* Stock status and Brand */}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
-            <Box display='flex' alignItems='center'>
-              <Typography variant='body2' color='text.secondary' fontWeight={500}>
-                Thương hiệu:&nbsp;
-              </Typography>
-              <Link href={`/products/brand/${product.brand.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                <Typography variant='body2' color='text.secondary' sx={{ '&:hover': { textDecoration: 'underline', color: 'primary.main' } }}>
-                  {product.brand.name}
+          <Link href={`/products/${product.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Typography 
+              variant="subtitle1" 
+              component="h3"
+              sx={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                fontWeight: 500,
+                mb: 1,
+                lineHeight: 1.3,
+                height: '2.6em',
+                '&:hover': {
+                  color: 'primary.main'
+                }
+              }}
+            >
+              {product.name}
+            </Typography>
+          </Link>
+
+          <Box sx={{ mt: 'auto' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {product.salePrice && product.salePrice > 0 ? (
+                <>
+                  <Typography variant="body2" color="text.secondary" sx={{ textDecoration: 'line-through' }}>
+                    {formatCurrency(product.price)}
+                  </Typography>
+                  <Typography variant="subtitle1" color="error.main" fontWeight={600}>
+                    {formatCurrency(product.salePrice)}
+                  </Typography>
+                </>
+              ) : (
+                <Typography variant="subtitle1" color="text.primary" fontWeight={600}>
+                  {formatCurrency(product.price)}
                 </Typography>
-              </Link>
+              )}
             </Box>
 
-            <StockIndicator instock={!isOutOfStock}>{isOutOfStock ? 'Hết hàng' : `Còn hàng: ${product.stock?.quantity || 0}`}</StockIndicator>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+              <StockIndicator 
+                variant="caption"
+                instock={!isOutOfStock}
+              >
+                {!isOutOfStock ? `Còn ${product.stock?.quantity || 0} sản phẩm` : 'Hết hàng'}
+              </StockIndicator>
+
+              {/* Reviews will be added in future implementation */}
+            </Box>
           </Box>
         </CardContent>
       </ProductCard>

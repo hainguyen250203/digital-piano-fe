@@ -49,7 +49,7 @@ export default function ProductDescription({ description }: ProductDescriptionPr
         )
       case 'paragraph':
         return (
-          <Typography key={index} variant='body1' sx={{ mb: 2, lineHeight: 1.8 }}>
+          <Typography key={index} variant='body2' sx={{ mb: 2, lineHeight: 1.8 }}>
             {block.content}
           </Typography>
         )
@@ -133,7 +133,7 @@ export default function ProductDescription({ description }: ProductDescriptionPr
               {descriptionBlocks.map((block, index) => renderDescriptionBlock(block, index))}
             </Box>
           ) : (
-            <Typography variant='body1' sx={{ color: alpha(theme.palette.text.primary, 0.8) }}>
+            <Typography variant='body2' sx={{ color: alpha(theme.palette.text.primary, 0.8) }}>
               {description || 'Không có thông tin mô tả.'}
             </Typography>
           )}
@@ -151,7 +151,7 @@ export default function ProductDescription({ description }: ProductDescriptionPr
           }}
           onClick={toggleDescription}
         >
-          <Typography color='text.secondary' sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+          <Typography variant='body2' color='text.secondary' sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
             <InfoOutlined fontSize='small' /> Nhấn để xem mô tả chi tiết sản phẩm
           </Typography>
         </Box>

@@ -1,12 +1,14 @@
 'use client'
 
-import OrderDetailPopup from '@/components/popup/OrderDetailPopup'
+import OrderDetailPopup from '@/components/popup/OrderDetailPopup/OrderDetailPopup'
 import { useOrderActions } from '@/hooks/order/useOrderActions'
 import { BaseResponse } from '@/types/base-response'
 import { ResponseOrder } from '@/types/order.type'
-import { Alert, Box, Paper, TablePagination } from '@mui/material'
+import { Alert, Box, Paper, TablePagination, Typography, useMediaQuery, useTheme } from '@mui/material'
+import { useMemo } from 'react'
 import OrderHistoryHeader from './OrderHistoryHeader'
 import OrderStatusFilter from './OrderStatusFilter'
+import OrdersGrid from './OrdersGrid'
 import OrdersTable from './OrdersTable'
 
 interface OrderHistoryProps {
@@ -15,6 +17,9 @@ interface OrderHistoryProps {
 }
 
 export default function OrderHistory({ orderData, orderRefetch }: OrderHistoryProps) {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+
   // Use order actions hook
   const {
     statusFilter,
@@ -35,12 +40,22 @@ export default function OrderHistory({ orderData, orderRefetch }: OrderHistoryPr
     onOrderChanged: orderRefetch
   })
 
-  if (!orderData) {
-    return <Alert severity='error'>Không thể tải lịch sử đơn hàng. Vui lòng thử lại.</Alert>
-  }
+  const orders = orderData?.data || []
+  const { filteredOrders } = filterAndPaginateOrders(orders)
 
-  const orders = orderData.data || []
-  const { filteredOrders, paginatedOrders } = filterAndPaginateOrders(orders)
+  // Get paginated orders for desktop/tablet, all orders for mobile
+  const displayOrders = useMemo(() => {
+    if (isMobile) return filteredOrders
+    return filteredOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+  }, [filteredOrders, isMobile, page, rowsPerPage])
+
+  if (!orderData) {
+    return (
+      <Alert severity='error'>
+        <Typography variant='body1'>Không thể tải lịch sử đơn hàng. Vui lòng thử lại.</Typography>
+      </Alert>
+    )
+  }
 
   return (
     <>
@@ -59,29 +74,41 @@ export default function OrderHistory({ orderData, orderRefetch }: OrderHistoryPr
         {filteredOrders.length === 0 ? (
           <Box p={3}>
             <Alert severity='info' sx={{ borderRadius: 2 }}>
-              Không tìm thấy đơn hàng nào{statusFilter !== 'all' ? ' với trạng thái đã chọn' : ''}.
+              <Typography variant='body1'>Không tìm thấy đơn hàng nào{statusFilter !== 'all' ? ' với trạng thái đã chọn' : ''}.</Typography>
             </Alert>
           </Box>
         ) : (
           <>
-            <OrdersTable
-              orders={paginatedOrders}
-              isUserCancelOrderLoading={isUserCancelOrderLoading}
-              onOpenDetail={handleOpenDetail}
-              onCancelOrder={handleCancelOrder}
-              onOrderStatusChange={handleOrderStatusChange}
-            />
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25]}
-              component='div'
-              count={filteredOrders.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              labelRowsPerPage='Đơn hàng mỗi trang:'
-              labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count}`}
-            />
+            {isMobile ? (
+              <OrdersGrid
+                orders={displayOrders}
+                isUserCancelOrderLoading={isUserCancelOrderLoading}
+                onOpenDetail={handleOpenDetail}
+                onCancelOrder={handleCancelOrder}
+                onOrderStatusChange={handleOrderStatusChange}
+              />
+            ) : (
+              <>
+                <OrdersTable
+                  orders={displayOrders}
+                  isUserCancelOrderLoading={isUserCancelOrderLoading}
+                  onOpenDetail={handleOpenDetail}
+                  onCancelOrder={handleCancelOrder}
+                  onOrderStatusChange={handleOrderStatusChange}
+                />
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25]}
+                  component='div'
+                  count={filteredOrders.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  labelRowsPerPage='Đơn hàng mỗi trang:'
+                  labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count}`}
+                />
+              </>
+            )}
           </>
         )}
       </Paper>

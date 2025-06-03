@@ -1,5 +1,5 @@
 import { ResponseOrder } from '@/types/order.type'
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
 import OrderRow from './OrderRow'
 
 interface OrdersTableProps {
@@ -22,13 +22,41 @@ export default function OrdersTable({
       <Table stickyHeader>
         <TableHead>
           <TableRow>
-            <TableCell>Mã đơn hàng</TableCell>
-            <TableCell>Ngày đặt</TableCell>
-            <TableCell>Trạng thái</TableCell>
-            <TableCell>Thanh toán</TableCell>
-            <TableCell>Phương thức</TableCell>
-            <TableCell>Tổng tiền</TableCell>
-            <TableCell>Thao tác</TableCell>
+            <TableCell>
+              <Typography variant="subtitle2" fontWeight={600}>
+                Mã đơn hàng
+              </Typography>
+            </TableCell>
+            <TableCell>
+              <Typography variant="subtitle2" fontWeight={600}>
+                Ngày đặt
+              </Typography>
+            </TableCell>
+            <TableCell>
+              <Typography variant="subtitle2" fontWeight={600}>
+                Trạng thái
+              </Typography>
+            </TableCell>
+            <TableCell>
+              <Typography variant="subtitle2" fontWeight={600}>
+                Thanh toán
+              </Typography>
+            </TableCell>
+            <TableCell>
+              <Typography variant="subtitle2" fontWeight={600}>
+                Phương thức
+              </Typography>
+            </TableCell>
+            <TableCell>
+              <Typography variant="subtitle2" fontWeight={600}>
+                Tổng tiền
+              </Typography>
+            </TableCell>
+            <TableCell>
+              <Typography variant="subtitle2" fontWeight={600}>
+                Thao tác
+              </Typography>
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
