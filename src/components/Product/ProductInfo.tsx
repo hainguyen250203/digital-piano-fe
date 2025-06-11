@@ -1,4 +1,4 @@
-import { ProductDetailData } from '@/hooks/apis/product'
+import { ProductDetailData } from '@/types/product.type'
 import { formatCurrency } from '@/utils/format'
 import { AddShoppingCart, Favorite, LocalShipping, SwapHoriz } from '@mui/icons-material'
 import { Box, Button, Chip, CircularProgress, Divider, Paper, Stack, Typography, alpha } from '@mui/material'

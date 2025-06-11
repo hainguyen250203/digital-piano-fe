@@ -1,12 +1,13 @@
 'use client'
 
+import { ResponseOrder } from '@/types/order.type'
 import { calculateSubtotal, formatNumber } from '@/utils/order'
 import ReceiptIcon from '@mui/icons-material/Receipt'
 import { Box, Divider, Paper, Stack, Typography } from '@mui/material'
 import { memo, useMemo } from 'react'
 
 interface OrderSummaryProps {
-  orderData: any // Using 'any' temporarily, should be replaced with proper type
+  orderData: ResponseOrder
 }
 
 // Use React.memo to prevent unnecessary re-renders
@@ -65,4 +66,4 @@ export default memo(function OrderSummary({ orderData }: OrderSummaryProps) {
       </Stack>
     </Paper>
   )
-}) 
+})

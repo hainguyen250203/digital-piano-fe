@@ -1,4 +1,4 @@
-import { ProductListData } from '@/hooks/apis/product'
+import { ProductListData } from '@/types/product.type'
 import { useMemo, useState } from 'react'
 
 interface FilterState {

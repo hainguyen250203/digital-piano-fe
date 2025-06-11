@@ -1,7 +1,7 @@
 'use client'
 import ProductItem from '@/components/Product/ProductItem'
 import ProductSkeleton from '@/components/Product/ProductSkeleton'
-import { ProductListData } from '@/hooks/apis/product'
+import { ProductListData } from '@/types/product.type'
 import { Box, Grid } from '@mui/material'
 
 interface ProductListProps {
@@ -15,7 +15,7 @@ export default function ProductList({ products, isLoading, error }: ProductListP
   if (isLoading || error || !products || !Array.isArray(products) || products.length === 0) {
     return <ProductSkeleton count={8} />
   }
-  
+
   return (
     <Box>
       <Grid container spacing={2}>

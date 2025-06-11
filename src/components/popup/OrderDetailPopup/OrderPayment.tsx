@@ -1,13 +1,13 @@
 'use client'
 
-import { OrderStatus } from '@/types/order.type'
+import { OrderStatus, ResponseOrder } from '@/types/order.type'
 import { formatPaymentMethod, getPaymentStatusColor, getPaymentStatusText, needsPayment } from '@/utils/order'
 import PaymentIcon from '@mui/icons-material/Payment'
 import { Box, Button, Chip, Paper, Stack, Typography } from '@mui/material'
 import { memo } from 'react'
 
 interface OrderPaymentProps {
-  orderData: any // Using 'any' temporarily, should be replaced with proper type
+  orderData: ResponseOrder // Using 'any' temporarily, should be replaced with proper type
   handlePayAgain: () => void
   isRepaymentLoading?: boolean
 }
@@ -78,4 +78,4 @@ export default memo(function OrderPayment({ orderData, handlePayAgain, isRepayme
       )}
     </Paper>
   )
-}) 
+})

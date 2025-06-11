@@ -1,7 +1,7 @@
 'use client'
 
 import { useCartWishlist } from '@/context/CartWishlistContext'
-import { ProductListData } from '@/hooks/apis/product'
+import { ProductListData } from '@/types/product.type'
 import { formatCurrency } from '@/utils/format'
 import { AddShoppingCart, Favorite } from '@mui/icons-material'
 import { alpha, Box, Card, CardContent, Chip, CircularProgress, IconButton, styled, Tooltip, Typography } from '@mui/material'
@@ -147,14 +147,8 @@ const CategoryChip = styled(Chip)(({ theme }) => ({
 }))
 
 export default function ProductItem({ product }: ProductItemProps) {
-  const { 
-    addToWishlist, 
-    addToCart, 
-    isAddingToWishlist,
-    isAddingToCart,
-    isInWishlist
-  } = useCartWishlist()
-  
+  const { addToWishlist, addToCart, isAddingToWishlist, isAddingToCart, isInWishlist } = useCartWishlist()
+
   if (!product) {
     return null
   }
@@ -228,7 +222,7 @@ export default function ProductItem({ product }: ProductItemProps) {
           {/* Out Of Stock Overlay */}
           {isOutOfStock && (
             <StockOverlay>
-              <Typography variant="subtitle1" sx={{ color: 'error.main', bgcolor: 'background.paper', py: 1, px: 3, borderRadius: 1, fontWeight: 'bold' }}>
+              <Typography variant='subtitle1' sx={{ color: 'error.main', bgcolor: 'background.paper', py: 1, px: 3, borderRadius: 1, fontWeight: 'bold' }}>
                 Hết Hàng
               </Typography>
             </StockOverlay>
@@ -238,61 +232,36 @@ export default function ProductItem({ product }: ProductItemProps) {
           <IconButtonContainer className='action-buttons'>
             <Tooltip title='Thêm vào giỏ hàng'>
               <span>
-                <ActionIconButton 
-                  aria-label='add to cart' 
-                  color='primary' 
-                  disabled={isProductAddingToCart || isOutOfStock}
-                  onClick={handleAddToCart}
-                >
-                  {isProductAddingToCart ? (
-                    <CircularProgress size={20} />
-                  ) : (
-                    <AddShoppingCart fontSize='small' />
-                  )}
+                <ActionIconButton aria-label='add to cart' color='primary' disabled={isProductAddingToCart || isOutOfStock} onClick={handleAddToCart}>
+                  {isProductAddingToCart ? <CircularProgress size={20} /> : <AddShoppingCart fontSize='small' />}
                 </ActionIconButton>
               </span>
             </Tooltip>
             <Tooltip title={isProductInWishlist ? 'Đã thêm vào yêu thích' : 'Thêm vào yêu thích'}>
-              <ActionIconButton 
-                aria-label='add to wishlist' 
-                color={isProductInWishlist ? 'error' : 'default'}
-                disabled={isProductAddingToWishlist}
-                onClick={handleAddToWishlist}
-              >
-                {isProductAddingToWishlist ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <Favorite fontSize='small' />
-                )}
+              <ActionIconButton aria-label='add to wishlist' color={isProductInWishlist ? 'error' : 'default'} disabled={isProductAddingToWishlist} onClick={handleAddToWishlist}>
+                {isProductAddingToWishlist ? <CircularProgress size={20} /> : <Favorite fontSize='small' />}
               </ActionIconButton>
             </Tooltip>
           </IconButtonContainer>
         </MediaContainer>
 
         <CardContent sx={{ p: 2, pt: 1.5, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ mb: 0.5, display: 'flex', gap: 0.5 }}>
-            {product.productType?.name && (
-              <CategoryChip
-                label={product.productType.name}
-                size='small'
-              />
-            )}
-          </Box>
+          <Box sx={{ mb: 0.5, display: 'flex', gap: 0.5 }}>{product.productType?.name && <CategoryChip label={product.productType.name} size='small' />}</Box>
 
           <Link href={`/products/${product.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-            <Typography 
-              variant="subtitle1" 
-              component="h3"
+            <Typography
+              variant='subtitle1'
+              component='h3'
               sx={{
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                fontWeight: 500,
-                mb: 1,
-                lineHeight: 1.3,
-                height: '2.6em',
+                'display': '-webkit-box',
+                'WebkitLineClamp': 2,
+                'WebkitBoxOrient': 'vertical',
+                'overflow': 'hidden',
+                'textOverflow': 'ellipsis',
+                'fontWeight': 500,
+                'mb': 1,
+                'lineHeight': 1.3,
+                'height': '2.6em',
                 '&:hover': {
                   color: 'primary.main'
                 }
@@ -306,25 +275,22 @@ export default function ProductItem({ product }: ProductItemProps) {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               {product.salePrice && product.salePrice > 0 ? (
                 <>
-                  <Typography variant="body2" color="text.secondary" sx={{ textDecoration: 'line-through' }}>
+                  <Typography variant='body2' color='text.secondary' sx={{ textDecoration: 'line-through' }}>
                     {formatCurrency(product.price)}
                   </Typography>
-                  <Typography variant="subtitle1" color="error.main" fontWeight={600}>
+                  <Typography variant='subtitle1' color='error.main' fontWeight={600}>
                     {formatCurrency(product.salePrice)}
                   </Typography>
                 </>
               ) : (
-                <Typography variant="subtitle1" color="text.primary" fontWeight={600}>
+                <Typography variant='subtitle1' color='text.primary' fontWeight={600}>
                   {formatCurrency(product.price)}
                 </Typography>
               )}
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-              <StockIndicator 
-                variant="caption"
-                instock={!isOutOfStock}
-              >
+              <StockIndicator variant='caption' instock={!isOutOfStock}>
                 {!isOutOfStock ? `Còn ${product.stock?.quantity || 0} sản phẩm` : 'Hết hàng'}
               </StockIndicator>
 

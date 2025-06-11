@@ -1,4 +1,4 @@
-import { ProductDetailData } from '@/hooks/apis/product'
+import { ProductDetailData } from '@/types/product.type'
 import { formatCurrency } from '@/utils/format'
 import CloseIcon from '@mui/icons-material/Close'
 import VisibilityIcon from '@mui/icons-material/Visibility'
@@ -55,19 +55,19 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
   }
 
   return (
-    <Modal open={open} onClose={onClose} aria-labelledby="modal-product-details" closeAfterTransition>
+    <Modal open={open} onClose={onClose} aria-labelledby='modal-product-details' closeAfterTransition>
       <Fade in={open}>
         <Box
-          position="absolute"
-          top="50%"
-          left="50%"
+          position='absolute'
+          top='50%'
+          left='50%'
           style={{
             transform: 'translate(-50%, -50%)',
             maxHeight: '90vh',
             overflowY: 'auto'
           }}
           width={{ xs: '95%', sm: '90%', md: '80%', lg: '75%' }}
-          bgcolor="background.paper"
+          bgcolor='background.paper'
           boxShadow={24}
           p={{ xs: 2, sm: 3, md: 4 }}
           borderRadius={2}
@@ -90,9 +90,9 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
         >
           {/* Close Button */}
           <IconButton
-            aria-label="close"
+            aria-label='close'
             onClick={onClose}
-            color="default"
+            color='default'
             style={{
               position: 'absolute',
               right: 8,
@@ -109,15 +109,15 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
             <CloseIcon />
           </IconButton>
 
-          <Box display="flex" alignItems="center" mb={3} pr={5}>
+          <Box display='flex' alignItems='center' mb={3} pr={5}>
             <VisibilityIcon sx={{ mr: 1, color: 'primary.main' }} />
-            <Typography variant="h5" fontWeight="bold" color="primary">
+            <Typography variant='h5' fontWeight='bold' color='primary'>
               {isLoading ? <Skeleton width={200} /> : product.name}
             </Typography>
           </Box>
 
           {isLoading ? (
-            <Box display="flex" justifyContent="center" alignItems="center" height="50vh">
+            <Box display='flex' justifyContent='center' alignItems='center' height='50vh'>
               <CircularProgress />
             </Box>
           ) : (
@@ -129,8 +129,8 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
                   <Paper elevation={2} style={{ padding: 16, height: '100%', borderRadius: 8 }}>
                     {/* Main Image */}
                     <Box
-                      position="relative"
-                      width="100%"
+                      position='relative'
+                      width='100%'
                       height={350}
                       borderRadius={1}
                       mb={2}
@@ -156,12 +156,12 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
                     </Box>
 
                     {/* Thumbnail Images */}
-                    <Box display="flex" flexWrap="wrap" gap={1} justifyContent="center" mt={2}>
+                    <Box display='flex' flexWrap='wrap' gap={1} justifyContent='center' mt={2}>
                       {existingImages.map((image, index) => (
                         <Tooltip title={image.id === product.defaultImage?.id ? 'Ảnh mặc định' : `Ảnh ${index + 1}`} key={index}>
                           <Box
                             onClick={() => handleImageClick(image.url)}
-                            position="relative"
+                            position='relative'
                             width={70}
                             height={70}
                             borderRadius={1}
@@ -198,49 +198,49 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
                 {/* Basic Information */}
                 <Grid size={7}>
                   <Paper elevation={2} style={{ padding: 16, height: '100%', borderRadius: 8 }}>
-                    <Typography variant="h6" mb={2} fontWeight="bold" color="primary.main" pb={1} style={{ borderBottom: '1px solid #e0e0e0' }}>
+                    <Typography variant='h6' mb={2} fontWeight='bold' color='primary.main' pb={1} style={{ borderBottom: '1px solid #e0e0e0' }}>
                       Thông tin cơ bản
                     </Typography>
 
                     <Grid container spacing={2}>
                       <Grid size={12}>
-                        <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
+                        <Typography variant='subtitle1' fontWeight='bold' color='text.secondary'>
                           Tên sản phẩm
                         </Typography>
-                        <Typography variant="body1" fontSize="1.1rem">
+                        <Typography variant='body1' fontSize='1.1rem'>
                           {product.name}
                         </Typography>
                       </Grid>
 
                       <Grid size={6}>
-                        <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
+                        <Typography variant='subtitle1' fontWeight='bold' color='text.secondary'>
                           Giá
                         </Typography>
-                        <Typography variant="body1" fontSize="1.1rem" color="success.main" fontWeight="bold">
+                        <Typography variant='body1' fontSize='1.1rem' color='success.main' fontWeight='bold'>
                           {formatCurrency(product.price)}
                         </Typography>
                       </Grid>
 
                       <Grid size={6}>
-                        <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
+                        <Typography variant='subtitle1' fontWeight='bold' color='text.secondary'>
                           Giá khuyến mãi
                         </Typography>
                         {product.salePrice ? (
-                          <Box display="flex" alignItems="center" gap={1}>
-                            <Typography variant="body1" component="span" fontSize="1.1rem" color="error.main" fontWeight="bold">
+                          <Box display='flex' alignItems='center' gap={1}>
+                            <Typography variant='body1' component='span' fontSize='1.1rem' color='error.main' fontWeight='bold'>
                               {formatCurrency(product.salePrice)}
                             </Typography>
-                            <Typography variant="body2" component="span" color="text.disabled" style={{ textDecoration: 'line-through' }}>
+                            <Typography variant='body2' component='span' color='text.disabled' style={{ textDecoration: 'line-through' }}>
                               {formatCurrency(product.price)}
                             </Typography>
                             {product.price > 0 && product.salePrice > 0 && (
                               <Box>
-                                <Chip label={`Tiết kiệm ${Math.round((1 - product.salePrice / product.price) * 100)}%`} color="error" size="small" />
+                                <Chip label={`Tiết kiệm ${Math.round((1 - product.salePrice / product.price) * 100)}%`} color='error' size='small' />
                               </Box>
                             )}
                           </Box>
                         ) : (
-                          <Typography variant="body1" component="span">
+                          <Typography variant='body1' component='span'>
                             N/A
                           </Typography>
                         )}
@@ -251,28 +251,28 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
                       </Grid>
 
                       <Grid size={4}>
-                        <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
+                        <Typography variant='subtitle1' fontWeight='bold' color='text.secondary'>
                           Loại sản phẩm
                         </Typography>
-                        <Typography variant="body1" component="span">
+                        <Typography variant='body1' component='span'>
                           {product.subCategory.name}
                         </Typography>
                       </Grid>
 
                       <Grid size={4}>
-                        <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
+                        <Typography variant='subtitle1' fontWeight='bold' color='text.secondary'>
                           Loại sản phẩm
                         </Typography>
-                        <Typography variant="body1" component="span">
+                        <Typography variant='body1' component='span'>
                           {product.productType?.name || 'N/A'}
                         </Typography>
                       </Grid>
 
                       <Grid size={4}>
-                        <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
+                        <Typography variant='subtitle1' fontWeight='bold' color='text.secondary'>
                           Nhãn hàng
                         </Typography>
-                        <Typography variant="body1" component="span">
+                        <Typography variant='body1' component='span'>
                           {product.brand.name}
                         </Typography>
                       </Grid>
@@ -282,16 +282,16 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
                       </Grid>
 
                       <Grid size={12}>
-                        <Box display="flex" flexWrap="wrap" gap={2} mt={1}>
+                        <Box display='flex' flexWrap='wrap' gap={2} mt={1}>
                           <Box>
-                            <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
+                            <Typography variant='subtitle1' fontWeight='bold' color='text.secondary'>
                               Nổi bật
                             </Typography>
                             <Box>
                               <Chip
                                 label={product.isFeatured ? 'Có' : 'Không'}
                                 color={product.isFeatured ? 'warning' : 'default'}
-                                size="small"
+                                size='small'
                                 variant={product.isFeatured ? 'filled' : 'outlined'}
                                 sx={{ minWidth: 70 }}
                               />
@@ -299,14 +299,14 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
                           </Box>
 
                           <Box>
-                            <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
+                            <Typography variant='subtitle1' fontWeight='bold' color='text.secondary'>
                               Bán chạy
                             </Typography>
                             <Box>
                               <Chip
                                 label={product.isHotSale ? 'Có' : 'Không'}
                                 color={product.isHotSale ? 'error' : 'default'}
-                                size="small"
+                                size='small'
                                 variant={product.isHotSale ? 'filled' : 'outlined'}
                                 sx={{ minWidth: 70 }}
                               />
@@ -314,11 +314,11 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
                           </Box>
 
                           <Box>
-                            <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
+                            <Typography variant='subtitle1' fontWeight='bold' color='text.secondary'>
                               Trạng thái
                             </Typography>
                             <Box>
-                              <Chip label={product.isDeleted ? 'Đã xóa' : 'Hoạt động'} color={product.isDeleted ? 'error' : 'success'} size="small" variant="filled" sx={{ minWidth: 70 }} />
+                              <Chip label={product.isDeleted ? 'Đã xóa' : 'Hoạt động'} color={product.isDeleted ? 'error' : 'success'} size='small' variant='filled' sx={{ minWidth: 70 }} />
                             </Box>
                           </Box>
                         </Box>
@@ -331,11 +331,11 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
                           </Grid>
 
                           <Grid size={12}>
-                            <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
+                            <Typography variant='subtitle1' fontWeight='bold' color='text.secondary'>
                               Số lượng hàng
                             </Typography>
                             <Box mt={1}>
-                              <Chip label={product.stock.quantity} color={product.stock.quantity > 10 ? 'success' : product.stock.quantity > 0 ? 'warning' : 'error'} size="small" />
+                              <Chip label={product.stock.quantity} color={product.stock.quantity > 10 ? 'success' : product.stock.quantity > 0 ? 'warning' : 'error'} size='small' />
                             </Box>
                           </Grid>
                         </>
@@ -348,11 +348,11 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
                           </Grid>
 
                           <Grid size={12}>
-                            <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
+                            <Typography variant='subtitle1' fontWeight='bold' color='text.secondary'>
                               URL video
                             </Typography>
-                            <Typography variant="body1" style={{ wordBreak: 'break-word' }}>
-                              <a href={product.videoUrl} target="_blank" rel="noopener noreferrer">
+                            <Typography variant='body1' style={{ wordBreak: 'break-word' }}>
+                              <a href={product.videoUrl} target='_blank' rel='noopener noreferrer'>
                                 {product.videoUrl}
                               </a>
                             </Typography>
@@ -374,7 +374,7 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
                     borderRadius: 8
                   }}
                 >
-                  <Typography variant="h6" mb={3} fontWeight="bold" color="primary.main" pb={1} style={{ borderBottom: '1px solid #e0e0e0' }}>
+                  <Typography variant='h6' mb={3} fontWeight='bold' color='primary.main' pb={1} style={{ borderBottom: '1px solid #e0e0e0' }}>
                     Mô tả sản phẩm
                   </Typography>
 
@@ -382,19 +382,19 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
                     {description.map((item, index) => (
                       <Box key={index} mb={3}>
                         {item.type === 'heading' && (
-                          <Typography variant="h6" fontWeight="bold" color="text.primary" gutterBottom>
+                          <Typography variant='h6' fontWeight='bold' color='text.primary' gutterBottom>
                             {item.content as string}
                           </Typography>
                         )}
 
                         {item.type === 'paragraph' && (
                           <Typography
-                            variant="body1"
+                            variant='body1'
                             style={{
                               whiteSpace: 'pre-line',
                               lineHeight: 1.7
                             }}
-                            color="text.secondary"
+                            color='text.secondary'
                           >
                             {item.content as string}
                           </Typography>
@@ -402,13 +402,13 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
 
                         {item.type === 'specs' && (
                           <Box p={2} style={{ background: '#f9f9f9' }}>
-                            <Typography variant="subtitle1" fontWeight="bold" mb={1} color="primary.main">
+                            <Typography variant='subtitle1' fontWeight='bold' mb={1} color='primary.main'>
                               Thông số kỹ thuật
                             </Typography>
-                            <Box component="ul" pl={2} mb={0}>
+                            <Box component='ul' pl={2} mb={0}>
                               {(item.content as string[]).map((spec, i) => (
-                                <Box component="li" key={i} mb={0.7}>
-                                  <Typography variant="body2">{spec}</Typography>
+                                <Box component='li' key={i} mb={0.7}>
+                                  <Typography variant='body2'>{spec}</Typography>
                                 </Box>
                               ))}
                             </Box>
@@ -438,7 +438,7 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
                                 }}
                               />
                               {(item.content as { src: string; alt: string }).alt && (
-                                <Typography variant="caption" display="block" mt={1} color="text.secondary">
+                                <Typography variant='caption' display='block' mt={1} color='text.secondary'>
                                   {(item.content as { src: string; alt: string }).alt}
                                 </Typography>
                               )}
@@ -453,11 +453,11 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
                 </Paper>
               )}
 
-              <Box display="flex" justifyContent="center" mt={3}>
+              <Box display='flex' justifyContent='center' mt={3}>
                 <Button
-                  variant="contained"
+                  variant='contained'
                   onClick={onClose}
-                  size="large"
+                  size='large'
                   style={{
                     minWidth: 150,
                     padding: '9.6px 0',

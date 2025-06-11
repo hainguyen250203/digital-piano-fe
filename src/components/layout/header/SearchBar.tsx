@@ -1,7 +1,8 @@
 'use client'
 
-import { ProductListData, useFetchProductList } from '@/hooks/apis/product'
+import { useFetchProductList } from '@/hooks/apis/product'
 import { useDebounce } from '@/hooks/useDebounce'
+import { ProductListData } from '@/types/product.type'
 import { formatCurrency } from '@/utils/format'
 import CloseIcon from '@mui/icons-material/Close'
 import SearchIcon from '@mui/icons-material/Search'
@@ -18,7 +19,7 @@ export default function SearchBar() {
   const theme = useTheme()
   const router = useRouter()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-  
+
   // In-memory cache to prevent unnecessary rerenders
   const [resultsCache, setResultsCache] = useState<Record<string, ProductListData[]>>({})
 
@@ -31,19 +32,16 @@ export default function SearchBar() {
     if (debouncedSearchTerm && resultsCache[debouncedSearchTerm]) {
       return resultsCache[debouncedSearchTerm]
     }
-    
+
     if (!data?.data || !debouncedSearchTerm) return []
-    
-    const results = data.data
-      .filter((product: ProductListData) => 
-        product.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
-      .slice(0, 6) // Limit to 6 suggestions for better UX
-      
+
+    const results = data.data.filter((product: ProductListData) => product.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())).slice(0, 6) // Limit to 6 suggestions for better UX
+
     // Cache results for this search term
     if (debouncedSearchTerm) {
       setResultsCache(prev => ({ ...prev, [debouncedSearchTerm]: results }))
     }
-    
+
     return results
   }, [data?.data, debouncedSearchTerm, resultsCache])
 
@@ -56,13 +54,13 @@ export default function SearchBar() {
         setShowResults(false)
       }
     }
-    
+
     document.addEventListener('click', handleClickOutside)
     return () => {
       document.removeEventListener('click', handleClickOutside)
     }
   }, [])
-  
+
   // Close results when pressing escape key
   useEffect(() => {
     const handleEscKey = (e: KeyboardEvent) => {
@@ -70,7 +68,7 @@ export default function SearchBar() {
         setShowResults(false)
       }
     }
-    
+
     document.addEventListener('keydown', handleEscKey)
     return () => {
       document.removeEventListener('keydown', handleEscKey)
@@ -81,7 +79,7 @@ export default function SearchBar() {
     setSearchTerm(e.target.value)
     setShowResults(true)
   }
-  
+
   const handleSearchFocus = () => {
     if (searchTerm) {
       setShowResults(true)
@@ -104,7 +102,7 @@ export default function SearchBar() {
 
   return (
     <Box
-      id="product-search"
+      id='product-search'
       sx={{
         position: 'relative',
         width: '100%',
@@ -141,7 +139,7 @@ export default function SearchBar() {
           ),
           endAdornment: searchTerm && (
             <InputAdornment position='end'>
-              <IconButton size='small' onClick={handleClear} edge='end' aria-label="Clear search">
+              <IconButton size='small' onClick={handleClear} edge='end' aria-label='Clear search'>
                 <CloseIcon fontSize='small' />
               </IconButton>
             </InputAdornment>
@@ -190,14 +188,7 @@ export default function SearchBar() {
                   <ListItemAvatar>
                     <Avatar variant='rounded' sx={{ width: 60, height: 60, borderRadius: 1 }}>
                       {product.defaultImage ? (
-                        <Image 
-                          src={product.defaultImage.url} 
-                          alt={product.name} 
-                          width={60} 
-                          height={60} 
-                          style={{ objectFit: 'contain' }}
-                          priority={true}
-                        />
+                        <Image src={product.defaultImage.url} alt={product.name} width={60} height={60} style={{ objectFit: 'contain' }} priority={true} />
                       ) : (
                         <Box sx={{ bgcolor: 'grey.300', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <Typography variant='caption' color='text.secondary'>
