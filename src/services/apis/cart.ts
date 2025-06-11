@@ -1,9 +1,9 @@
 import API from "@/services/axios"
 import Endpoint from "@/services/endpoint"
 import { BaseResponse } from "@/types/base-response"
-import { AddProductToCart, ResCartType } from "@/types/cart.type"
+import { AddProductToCart, CartItemType, ResCartType } from "@/types/cart.type"
 
-export const addToCart = async (addProductToCart: AddProductToCart): Promise<BaseResponse<null>> => {
+export const addToCart = async (addProductToCart: AddProductToCart): Promise<BaseResponse<CartItemType>> => {
   const { data } = await API.post(Endpoint().cart.addProductToCart, {
     productId: addProductToCart.productId
   })
@@ -15,7 +15,7 @@ export const getCart = async (): Promise<BaseResponse<ResCartType>> => {
   return data
 }
 
-export const FetchUpdateCartItem = async (cartItemId: string, quantity: number): Promise<BaseResponse<null>> => {
+export const FetchUpdateCartItem = async (cartItemId: string, quantity: number): Promise<BaseResponse<CartItemType>> => {
   if (!cartItemId || typeof cartItemId !== 'string') {
     throw new Error('Invalid cart item ID')
   }

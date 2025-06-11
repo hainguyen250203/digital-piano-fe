@@ -8,16 +8,16 @@ import StarIcon from '@mui/icons-material/Star'
 import StarBorderIcon from '@mui/icons-material/StarBorder'
 import { Box, IconButton, Rating, Typography } from '@mui/material'
 import { memo } from 'react'
-import { useReview } from './ReviewContext'
 
 interface ReviewItemProps {
   review: ProductReview
+  onEdit: () => void
+  onDelete: () => void
+  isDeleting: boolean
 }
 
 // Use React.memo to prevent unnecessary re-renders
-export default memo(function ReviewItem({ review }: ReviewItemProps) {
-  const { handleEditReview, handleDeleteReview, isDeletingReview } = useReview()
-
+export default memo(function ReviewItem({ review, onEdit, onDelete, isDeleting }: ReviewItemProps) {
   return (
     <Box
       sx={{
@@ -34,22 +34,16 @@ export default memo(function ReviewItem({ review }: ReviewItemProps) {
           <Typography variant='subtitle2'>Đánh giá của bạn</Typography>
         </Box>
         <Box>
-          <IconButton size='small' onClick={() => handleEditReview(review)} disabled={isDeletingReview}>
+          <IconButton size='small' onClick={onEdit} disabled={isDeleting}>
             <EditIcon fontSize='small' />
           </IconButton>
-          <IconButton size='small' onClick={() => handleDeleteReview(review.id)} disabled={isDeletingReview}>
+          <IconButton size='small' onClick={onDelete} disabled={isDeleting}>
             <DeleteIcon fontSize='small' />
           </IconButton>
         </Box>
       </Box>
 
-      <Rating 
-        value={review.rating} 
-        readOnly 
-        precision={1} 
-        emptyIcon={<StarBorderIcon fontSize='inherit' />} 
-        icon={<StarIcon fontSize='inherit' />} 
-      />
+      <Rating value={review.rating} readOnly precision={1} emptyIcon={<StarBorderIcon fontSize='inherit' />} icon={<StarIcon fontSize='inherit' />} />
 
       <Typography variant='body2' sx={{ mt: 1 }}>
         {review.content}
@@ -60,4 +54,4 @@ export default memo(function ReviewItem({ review }: ReviewItemProps) {
       </Typography>
     </Box>
   )
-}) 
+})

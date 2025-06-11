@@ -16,19 +16,19 @@ interface UserContextType {
   profileData: BaseResponse<UserData> | undefined
   profileLoading: boolean
   profileRefetch: () => void
-  
+
   // Profile mutations
   updateProfile: (data: { phoneNumber: string | undefined }) => void
   isUpdatingProfile: boolean
-  
+
   updateAvatar: (formData: FormData) => void
   isUpdatingAvatar: boolean
-  
+
   // Address data
   addressData: BaseResponse<ResponseAddress[]> | undefined
   addressLoading: boolean
   addressRefetch: () => void
-  
+
   // Order data
   orderData: BaseResponse<ResponseOrder[]> | undefined
   orderLoading: boolean
@@ -45,88 +45,66 @@ interface UserProviderProps {
 
 export function UserProvider({ children }: UserProviderProps) {
   // Profile data
-  const { 
-    data: profileData, 
-    isLoading: profileLoading, 
-    refetch: profileRefetch 
-  } = useFetchCurrentUserProfile()
-  
+  const { data: profileData, isLoading: profileLoading, refetch: profileRefetch } = useFetchCurrentUserProfile()
+
   // Profile mutations
-  const { 
-    mutate: updateProfile, 
-    isPending: isUpdatingProfile 
-  } = useFetchUpdateProfile({
+  const { mutate: updateProfile, isPending: isUpdatingProfile } = useFetchUpdateProfile({
     onSuccess: () => {
       profileRefetch()
       toast.success('Cập nhật thông tin thành công')
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || 'Cập nhật thông tin thất bại')
     }
   })
 
-  const { 
-    mutate: updateAvatar, 
-    isPending: isUpdatingAvatar 
-  } = useFetchUpdateAvatar({
+  const { mutate: updateAvatar, isPending: isUpdatingAvatar } = useFetchUpdateAvatar({
     onSuccess: () => {
       profileRefetch()
       toast.success('Cập nhật ảnh đại diện thành công')
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || 'Cập nhật ảnh đại diện thất bại')
     }
   })
-  
+
   // Address data
-  const { 
-    data: addressData, 
-    isLoading: addressLoading, 
-    refetch: addressRefetch 
-  } = useFetchAddressList()
-  
+  const { data: addressData, isLoading: addressLoading, refetch: addressRefetch } = useFetchAddressList()
+
   // Order data
-  const { 
-    data: orderData, 
-    isLoading: orderLoading, 
-    refetch: orderRefetch 
-  } = useFetchGetMyOrders()
+  const { data: orderData, isLoading: orderLoading, refetch: orderRefetch } = useFetchGetMyOrders()
 
   // Create the context value object
   const contextValue: UserContextType = {
     profileData,
     profileLoading,
     profileRefetch,
-    
+
     updateProfile,
     isUpdatingProfile,
-    
+
     updateAvatar,
     isUpdatingAvatar,
-    
+
     addressData,
     addressLoading,
     addressRefetch,
-    
+
     orderData,
     orderLoading,
     orderRefetch
   }
 
-  return (
-    <UserContext.Provider value={contextValue}>
-      {children}
-    </UserContext.Provider>
-  )
+  return <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>
 }
 
 // Custom hook to use the user context
 export function useUserContext() {
   const context = useContext(UserContext)
-  
+
   if (context === undefined) {
     throw new Error('useUserContext must be used within a UserProvider')
   }
-  
+
   return context
-} 
+}

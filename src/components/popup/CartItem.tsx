@@ -1,6 +1,6 @@
 'use client'
 
-import { useCartWishlist } from '@/context/CartWishlistContext'
+import { useFetchDeleteCartItem, useFetchUpdateCartItem } from '@/hooks/apis/cart'
 import { type ResCartType } from '@/types/cart.type'
 import { formatCurrency } from '@/utils/format'
 import AddIcon from '@mui/icons-material/Add'
@@ -8,6 +8,8 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import RemoveIcon from '@mui/icons-material/Remove'
 import { alpha, Box, CircularProgress, IconButton, Link, Stack, Typography, useTheme } from '@mui/material'
 import Image from 'next/image'
+import { useState } from 'react'
+import { toast } from 'react-toastify'
 
 // Use the CartItemType from ResCartType
 type CartItemType = ResCartType['items'][0]
@@ -18,7 +20,27 @@ interface CartItemProps {
 
 const CartItem = ({ item }: CartItemProps) => {
   const theme = useTheme()
-  const { updateCartItem, removeCartItem, isUpdatingCart, isDeletingCartItem } = useCartWishlist()
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  // Cart mutations
+  const { mutate: updateCartItemMutation } = useFetchUpdateCartItem({
+    onSuccess: () => {
+      toast.success('Đã cập nhật giỏ hàng', { position: 'top-center' })
+    },
+    onError: error => {
+      toast.error(error.message || 'Lỗi khi cập nhật giỏ hàng', { position: 'top-center' })
+    }
+  })
+
+  const { mutate: removeCartItemMutation } = useFetchDeleteCartItem({
+    onSuccess: () => {
+      toast.success('Đã xóa sản phẩm khỏi giỏ hàng', { position: 'top-center' })
+    },
+    onError: error => {
+      toast.error(error.message || 'Lỗi khi xóa sản phẩm khỏi giỏ hàng', { position: 'top-center' })
+    }
+  })
 
   const handleUpdateQuantity = (quantity: number) => {
     if (quantity < 1) {
@@ -26,20 +48,29 @@ const CartItem = ({ item }: CartItemProps) => {
       return
     }
 
-    updateCartItem(item.id, quantity)
+    setIsUpdating(true)
+    updateCartItemMutation(
+      { cartItemId: item.id, quantity },
+      {
+        onSettled: () => {
+          setIsUpdating(false)
+        }
+      }
+    )
   }
 
   const handleRemoveItem = () => {
-    removeCartItem(item.id)
+    setIsDeleting(true)
+    removeCartItemMutation(item.id, {
+      onSettled: () => {
+        setIsDeleting(false)
+      }
+    })
   }
 
   const { product } = item
   const displayPrice = product.salePrice > 0 ? product.salePrice : product.price
   const totalPrice = displayPrice * item.quantity
-
-  // Determine if this specific item is being updated or deleted
-  const isThisItemUpdating = isUpdatingCart(item.id)
-  const isThisItemDeleting = isDeletingCartItem(item.id)
 
   return (
     <Box
@@ -56,14 +87,17 @@ const CartItem = ({ item }: CartItemProps) => {
           boxShadow: 1,
           borderColor: 'primary.light',
           backgroundColor: alpha(theme.palette.primary.light, 0.03)
-        }
+        },
+        ...((isUpdating || isDeleting) && {
+          opacity: 0.7
+        })
       }}
     >
       {/* Delete button */}
       <IconButton
         size='small'
         onClick={handleRemoveItem}
-        disabled={isThisItemDeleting || isThisItemUpdating}
+        disabled={isDeleting || isUpdating}
         sx={{
           'position': 'absolute',
           'top': 8,
@@ -76,7 +110,7 @@ const CartItem = ({ item }: CartItemProps) => {
           }
         }}
       >
-        {isThisItemDeleting ? <CircularProgress size={16} color='error' /> : <DeleteOutlineIcon fontSize='small' />}
+        {isDeleting ? <CircularProgress size={16} color='error' /> : <DeleteOutlineIcon fontSize='small' />}
       </IconButton>
 
       {/* Product Image */}
@@ -156,7 +190,7 @@ const CartItem = ({ item }: CartItemProps) => {
             <IconButton
               size='small'
               onClick={() => handleUpdateQuantity(item.quantity - 1)}
-              disabled={isThisItemUpdating || isThisItemDeleting}
+              disabled={isUpdating || isDeleting}
               sx={{
                 border: '1px solid',
                 borderColor: 'divider',
@@ -181,7 +215,7 @@ const CartItem = ({ item }: CartItemProps) => {
                 position: 'relative'
               }}
             >
-              {isThisItemUpdating ? (
+              {isUpdating ? (
                 <CircularProgress size={16} color='primary' />
               ) : (
                 <Typography variant='body2' sx={{ fontWeight: 600 }}>
@@ -193,7 +227,7 @@ const CartItem = ({ item }: CartItemProps) => {
             <IconButton
               size='small'
               onClick={() => handleUpdateQuantity(item.quantity + 1)}
-              disabled={isThisItemUpdating || isThisItemDeleting}
+              disabled={isUpdating || isDeleting}
               sx={{
                 border: '1px solid',
                 borderColor: 'divider',

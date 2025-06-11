@@ -1,10 +1,10 @@
 'use client'
 
-import { useFetchGetOrderDetailByUserId } from '@/hooks/apis/order'
+import { useFetchGetOrderDetailByUserId, useRefreshOrder } from '@/hooks/apis/order'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CloseIcon from '@mui/icons-material/Close'
 import { Box, Button, Dialog, DialogContent, IconButton, Stack, Typography, useMediaQuery, useTheme } from '@mui/material'
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 import { toast } from 'react-toastify'
 
 // Import sub-components
@@ -15,7 +15,6 @@ import OrderItems from '@/components/popup/OrderDetailPopup/OrderItems'
 import OrderNotes from '@/components/popup/OrderDetailPopup/OrderNotes'
 import OrderPayment from '@/components/popup/OrderDetailPopup/OrderPayment'
 import OrderSummary from '@/components/popup/OrderDetailPopup/OrderSummary'
-import { ReviewContextProvider } from '@/components/popup/OrderDetailPopup/ReviewContext'
 
 interface OrderDetailPopupProps {
   open: boolean
@@ -25,46 +24,56 @@ interface OrderDetailPopupProps {
   isRepaymentLoading?: boolean
 }
 
-export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, isRepaymentLoading }: OrderDetailPopupProps) {
+export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, isRepaymentLoading = false }: OrderDetailPopupProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
   // API hooks with proper error handling
   const {
-    mutate: getOrderDetail,
     data: orderResponse,
-    isPending
-  } = useFetchGetOrderDetailByUserId({
+    isLoading: isPending,
+    isError,
+    error
+  } = useFetchGetOrderDetailByUserId(orderId, {
     onError: error => {
-      toast.error(error?.message || 'Không thể tải thông tin đơn hàng')
+      toast.error(error.message || 'Có lỗi xảy ra khi tải thông tin đơn hàng')
+    },
+    enabled: !!orderId && open // Only fetch when orderId exists and popup is open
+  })
+
+  // Refresh order mutation
+  const { mutate: refreshOrder } = useRefreshOrder(orderId, {
+    onError: error => {
+      toast.error(error.message || 'Có lỗi xảy ra khi cập nhật thông tin đơn hàng')
     }
   })
 
   // Get the actual order data from the response
   const orderData = orderResponse?.data
 
-  // Callback for payment actions - moved before conditional returns
+  // Callback for payment actions
   const handlePayAgain = useCallback(() => {
-    if (onPayAgain && orderData) {
+    if (onPayAgain && orderData?.id) {
       onPayAgain(orderData.id)
       onClose()
     }
   }, [onPayAgain, orderData, onClose])
 
-  // Fetch order details when orderId changes
-  useEffect(() => {
-    if (orderId && open) {
-      getOrderDetail(orderId)
-    }
-  }, [orderId, getOrderDetail, open])
+  // Callback for refreshing order
+  const handleRefreshOrder = useCallback(
+    (id: string) => {
+      refreshOrder(id)
+    },
+    [refreshOrder]
+  )
 
   // Show loading state
   if (isPending) {
     return (
-      <Dialog 
-        open={open} 
-        onClose={onClose} 
-        maxWidth='md' 
+      <Dialog
+        open={open}
+        onClose={onClose}
+        maxWidth='md'
         fullWidth
         fullScreen={isMobile}
         PaperProps={{
@@ -110,6 +119,22 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
         <DialogContent sx={{ p: 0, overflow: 'auto' }}>
           <OrderDetailPopupSkeleton />
         </DialogContent>
+      </Dialog>
+    )
+  }
+
+  // Show error state
+  if (isError) {
+    return (
+      <Dialog open={open} onClose={onClose} maxWidth='md' fullWidth PaperProps={{ sx: { borderRadius: 2, p: 4 } }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <Typography variant='h6' color='error'>
+            {error?.message || 'Có lỗi xảy ra khi tải thông tin đơn hàng'}
+          </Typography>
+          <Button variant='outlined' onClick={onClose}>
+            Đóng
+          </Button>
+        </Box>
       </Dialog>
     )
   }
@@ -179,34 +204,32 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
       </Box>
 
       <DialogContent sx={{ p: 0, overflow: 'auto' }}>
-        <ReviewContextProvider orderId={orderId} refreshOrder={getOrderDetail}>
-          <Stack spacing={2} sx={{ p: { xs: 2, sm: 3 } }}>
-            {/* Order Header & Status */}
-            <OrderHeader orderData={orderData} isMobile={isMobile} />
+        <Stack spacing={2} sx={{ p: { xs: 2, sm: 3 } }}>
+          {/* Order Header & Status */}
+          <OrderHeader orderData={orderData} isMobile={isMobile} />
 
-            {/* Address Information */}
-            {orderData.address && <OrderAddress address={orderData.address} />}
+          {/* Address Information */}
+          {orderData.address && <OrderAddress address={orderData.address} />}
 
-            {/* Payment Information */}
-            <OrderPayment orderData={orderData} handlePayAgain={handlePayAgain} isRepaymentLoading={isRepaymentLoading} />
+          {/* Payment Information */}
+          <OrderPayment orderData={orderData} handlePayAgain={handlePayAgain} isRepaymentLoading={isRepaymentLoading} />
 
-            {/* Order Items */}
-            <OrderItems orderData={orderData} />
+          {/* Order Items */}
+          <OrderItems orderData={orderData} refreshOrder={handleRefreshOrder} />
 
-            {/* Order Summary */}
-            <OrderSummary orderData={orderData} />
+          {/* Order Summary */}
+          <OrderSummary orderData={orderData} />
 
-            {/* Additional Notes */}
-            {orderData.note && <OrderNotes note={orderData.note} />}
+          {/* Additional Notes */}
+          {orderData.note && <OrderNotes note={orderData.note} />}
 
-            {/* Action Buttons */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 2 }}>
-              <Button variant='outlined' onClick={onClose} startIcon={<ArrowBackIcon />}>
-                Quay Lại
-              </Button>
-            </Box>
-          </Stack>
-        </ReviewContextProvider>
+          {/* Action Buttons */}
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 2 }}>
+            <Button variant='outlined' onClick={onClose} startIcon={<ArrowBackIcon />}>
+              Quay Lại
+            </Button>
+          </Box>
+        </Stack>
       </DialogContent>
     </Dialog>
   )

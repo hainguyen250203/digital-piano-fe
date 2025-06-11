@@ -42,17 +42,17 @@ export const fetchUpdateOrderStatus = async (id: string, status: OrderStatus): P
 export const fetchRepayment = async (id: string): Promise<BaseResponse<ResponseRepayment>> => {
   const { data } = await API.post(Endpoint().order.repayment(id));
   return data;
-}; 
+};
 
 export const fetchAdminCancelOrder = async (id: string): Promise<BaseResponse<ResponseOrder>> => {
   const { data } = await API.post(Endpoint().order.adminCancel(id));
   return data;
-}; 
+};
 
 export const fetchUserConfirmDelivery = async (id: string): Promise<BaseResponse<ResponseOrder>> => {
   const { data } = await API.post(Endpoint().order.userConfirmDelivery(id));
   return data;
-}; 
+};
 
 export const fetchUserChangePaymentMethod = async (id: string, paymentMethod: PaymentMethod): Promise<BaseResponse<ResponseOrder>> => {
   const { data } = await API.post(Endpoint().order.userChangePaymentMethod(id), { paymentMethod });

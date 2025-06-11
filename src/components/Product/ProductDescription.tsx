@@ -43,22 +43,57 @@ export default function ProductDescription({ description }: ProductDescriptionPr
     switch (block.type) {
       case 'heading':
         return (
-          <Typography key={index} variant='h6' fontWeight={600} sx={{ mt: 2, mb: 1 }}>
+          <Typography
+            key={index}
+            variant='h6'
+            fontWeight={600}
+            sx={{
+              mt: 3,
+              mb: 2,
+              color: 'primary.main',
+              display: 'inline-block'
+            }}
+          >
             {block.content}
           </Typography>
         )
       case 'paragraph':
         return (
-          <Typography key={index} variant='body2' sx={{ mb: 2, lineHeight: 1.8 }}>
+          <Typography
+            key={index}
+            variant='body1'
+            sx={{
+              mb: 2.5,
+              lineHeight: 1.8,
+              color: alpha(theme.palette.text.primary, 0.9),
+              textAlign: 'justify'
+            }}
+          >
             {block.content}
           </Typography>
         )
       case 'specs':
         return (
-          <Box key={index} sx={{ mb: 2 }}>
-            <Box component='ul' sx={{ pl: 3 }}>
+          <Box key={index} sx={{ mb: 3 }}>
+            <Box
+              component='ul'
+              sx={{
+                'pl': 3,
+                '& li': {
+                  'mb': 1,
+                  'position': 'relative',
+                  '&::before': {
+                    content: '"•"',
+                    color: 'primary.main',
+                    fontWeight: 'bold',
+                    position: 'absolute',
+                    left: -15
+                  }
+                }
+              }}
+            >
               {block.content.map((spec, i) => (
-                <Typography component='li' key={i} variant='body2' sx={{ mb: 0.5 }}>
+                <Typography component='li' key={i} variant='body1' sx={{ color: alpha(theme.palette.text.primary, 0.9) }}>
                   {spec}
                 </Typography>
               ))}
@@ -67,8 +102,25 @@ export default function ProductDescription({ description }: ProductDescriptionPr
         )
       case 'image':
         return (
-          <Box key={index} sx={{ my: 2, position: 'relative', height: 300, borderRadius: 1, overflow: 'hidden' }}>
-            <Image src={block.content.src} alt={block.content.alt} fill style={{ objectFit: 'contain' }} />
+          <Box key={index} sx={{ my: 3 }}>
+            <Box
+              sx={{
+                position: 'relative',
+                height: { xs: 250, sm: 300, md: 400 },
+                width: '100%',
+                borderRadius: 2,
+                overflow: 'hidden'
+              }}
+            >
+              <Image
+                src={block.content.src}
+                alt={block.content.alt}
+                fill
+                style={{
+                  objectFit: 'contain'
+                }}
+              />
+            </Box>
           </Box>
         )
       default:
@@ -85,11 +137,23 @@ export default function ProductDescription({ description }: ProductDescriptionPr
           justifyContent: 'space-between',
           mb: 3,
           pb: 2,
-          borderBottom: '1px solid',
-          borderColor: '#0000001f'
+          borderBottom: '2px solid',
+          borderColor: 'primary.main'
         }}
       >
-        <Typography variant='h5' fontWeight={700} color='primary.main' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography
+          variant='h5'
+          fontWeight={700}
+          color='primary.main'
+          sx={{
+            'display': 'flex',
+            'alignItems': 'center',
+            'gap': 1,
+            '& .MuiSvgIcon-root': {
+              fontSize: '1.5rem'
+            }
+          }}
+        >
           <DescriptionOutlined /> Mô tả sản phẩm
         </Typography>
         {isMobile && (
@@ -112,49 +176,88 @@ export default function ProductDescription({ description }: ProductDescriptionPr
       </Box>
 
       {showDescription || !isMobile ? (
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 2, sm: 3 },
-            borderRadius: 2,
-            border: '1px solid',
-            borderColor: '#0000001f'
-          }}
-        >
-          {descriptionBlocks.length > 0 ? (
+        descriptionBlocks.length > 0 ? (
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 2, sm: 3, md: 4 },
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: alpha(theme.palette.primary.main, 0.2),
+              bgcolor: alpha(theme.palette.background.paper, 0.8)
+            }}
+          >
             <Box
               sx={{
                 'textAlign': 'left',
-                '& img': { maxWidth: '100%', height: 'auto' },
-                '& h1, & h2, & h3, & h4, & h5, & h6': { color: theme.palette.text.primary },
-                '& p': { mb: 2, lineHeight: 1.7, color: alpha(theme.palette.text.primary, 0.9) }
+                '& img': {
+                  maxWidth: '100%',
+                  height: 'auto',
+                  borderRadius: 1,
+                  boxShadow: theme.shadows[1]
+                },
+                '& h1, & h2, & h3, & h4, & h5, & h6': {
+                  color: theme.palette.primary.main,
+                  fontWeight: 600
+                },
+                '& p': {
+                  mb: 2.5,
+                  lineHeight: 1.8,
+                  color: alpha(theme.palette.text.primary, 0.9),
+                  textAlign: 'justify'
+                }
               }}
             >
               {descriptionBlocks.map((block, index) => renderDescriptionBlock(block, index))}
             </Box>
-          ) : (
-            <Typography variant='body2' sx={{ color: alpha(theme.palette.text.primary, 0.8) }}>
-              {description || 'Không có thông tin mô tả.'}
-            </Typography>
-          )}
-        </Paper>
-      ) : (
+          </Paper>
+        ) : (
+          <Typography variant='h6' color='text.secondary'>
+            Sản phẩm này chưa có thông tin mô tả chi tiết.
+          </Typography>
+        )
+      ) : descriptionBlocks.length > 0 ? (
         <Box
           sx={{
-            p: 3,
-            borderRadius: 2,
-            border: '1px dashed',
-            borderColor: 'divider',
-            textAlign: 'center',
-            bgcolor: alpha(theme.palette.background.paper, 0.5),
-            cursor: 'pointer'
+            'p': 3,
+            'borderRadius': 2,
+            'border': '1px dashed',
+            'borderColor': 'primary.main',
+            'textAlign': 'center',
+            'bgcolor': alpha(theme.palette.primary.main, 0.05),
+            'cursor': 'pointer',
+            '&:hover': {
+              bgcolor: alpha(theme.palette.primary.main, 0.1)
+            }
           }}
           onClick={toggleDescription}
         >
-          <Typography variant='body2' color='text.secondary' sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-            <InfoOutlined fontSize='small' /> Nhấn để xem mô tả chi tiết sản phẩm
+          <Typography
+            variant='body1'
+            color='primary.main'
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1,
+              fontWeight: 500
+            }}
+          >
+            <InfoOutlined /> Nhấn để xem mô tả chi tiết sản phẩm
           </Typography>
         </Box>
+      ) : (
+        <Typography
+          variant='body1'
+          sx={{
+            color: alpha(theme.palette.text.secondary, 0.8),
+            textAlign: 'center',
+            fontStyle: 'italic',
+            py: 2
+          }}
+        >
+          Sản phẩm này chưa có thông tin mô tả chi tiết.
+        </Typography>
       )}
     </Box>
   )

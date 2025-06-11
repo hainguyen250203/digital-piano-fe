@@ -8,10 +8,12 @@ import { Avatar, Box, Chip, Paper, Stack, Typography, styled } from '@mui/materi
 import React, { useMemo } from 'react'
 
 // Compact mobile step connector
-const StepConnector = styled(Box)<{ completed?: boolean }>(({ theme, completed }) => ({
+const StepConnector = styled(Box, {
+  shouldForwardProp: prop => prop !== 'isCompleted'
+})<{ isCompleted?: boolean }>(({ theme, isCompleted }) => ({
   height: 2,
   flex: 1,
-  backgroundColor: completed ? theme.palette.primary.main : theme.palette.grey[300],
+  backgroundColor: isCompleted ? theme.palette.primary.main : theme.palette.grey[300],
   transition: 'all 0.3s ease'
 }))
 
@@ -63,9 +65,7 @@ export default function OrderHeader({ orderData, isMobile }: OrderHeaderProps) {
               <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', px: 1 }}>
                 {steps.map((_, index) => (
                   <React.Fragment key={index}>
-                    {index > 0 && (
-                      <StepConnector completed={index <= activeStep} />
-                    )}
+                    {index > 0 && <StepConnector isCompleted={index <= activeStep} />}
                     <Box sx={{ position: 'relative' }}>
                       {index <= activeStep ? (
                         <Avatar
@@ -74,7 +74,7 @@ export default function OrderHeader({ orderData, isMobile }: OrderHeaderProps) {
                             height: 16,
                             bgcolor: 'primary.main',
                             color: 'white',
-                            fontSize: '0.6rem',
+                            fontSize: '0.6rem'
                           }}
                         >
                           {index < activeStep ? <CheckIcon sx={{ fontSize: 12 }} /> : index + 1}
@@ -86,7 +86,7 @@ export default function OrderHeader({ orderData, isMobile }: OrderHeaderProps) {
                             height: 16,
                             bgcolor: 'grey.300',
                             color: 'text.secondary',
-                            fontSize: '0.6rem',
+                            fontSize: '0.6rem'
                           }}
                         >
                           {index + 1}
@@ -96,30 +96,30 @@ export default function OrderHeader({ orderData, isMobile }: OrderHeaderProps) {
                   </React.Fragment>
                 ))}
               </Box>
-              
+
               {/* Step labels below the indicators */}
-              <Stack 
-                direction="row" 
-                justifyContent="space-between" 
-                sx={{ 
-                  mt: 1,
-                  px: 0.5,
-                  '& > div': { 
-                    width: '25%', 
+              <Stack
+                direction='row'
+                justifyContent='space-between'
+                sx={{
+                  'mt': 1,
+                  'px': 0.5,
+                  '& > div': {
+                    width: '25%',
                     textAlign: 'center',
                     px: 0.5
-                  } 
+                  }
                 }}
               >
                 {shortSteps.map((label, index) => (
                   <Box key={index}>
                     <Typography
-                      variant="caption"
-                      fontSize="0.65rem"
+                      variant='caption'
+                      fontSize='0.65rem'
                       fontWeight={index === activeStep ? 600 : 400}
                       color={index <= activeStep ? 'primary.main' : 'text.secondary'}
-                      sx={{ 
-                        display: 'block', 
+                      sx={{
+                        display: 'block',
                         lineHeight: 1.2,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -137,9 +137,7 @@ export default function OrderHeader({ orderData, isMobile }: OrderHeaderProps) {
               <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', px: 2 }}>
                 {steps.map((label, index) => (
                   <React.Fragment key={index}>
-                    {index > 0 && (
-                      <StepConnector completed={index <= activeStep} />
-                    )}
+                    {index > 0 && <StepConnector isCompleted={index <= activeStep} />}
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
                       <Avatar
                         sx={{
@@ -152,10 +150,10 @@ export default function OrderHeader({ orderData, isMobile }: OrderHeaderProps) {
                       >
                         {index < activeStep ? <CheckIcon /> : getStepIcon(index)}
                       </Avatar>
-                      <Typography 
-                        variant="caption" 
-                        sx={{ 
-                          mt: 0.5, 
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          mt: 0.5,
                           textAlign: 'center',
                           maxWidth: '80px',
                           fontWeight: index === activeStep ? 600 : 400
@@ -182,4 +180,4 @@ export default function OrderHeader({ orderData, isMobile }: OrderHeaderProps) {
       )}
     </Paper>
   )
-} 
+}

@@ -119,12 +119,26 @@ export const useFetchUserChangePaymentMethod = (options?: {
   })
 }
 
-export const useFetchGetOrderDetailByUserId = (options?: {
+export const useFetchGetOrderDetailByUserId = (orderId: string, options?: {
+  onSuccess?: (data: BaseResponse<ResponseOrder>) => void;
+  onError?: (error: BaseResponse<null>) => void;
+  enabled?: boolean;
+}) => {
+  return useQuery({
+    queryKey: [QueryKey.ORDER_DETAIL, orderId],
+    queryFn: () => fetchGetOrderDetailByUserId(orderId),
+    enabled: options?.enabled ?? !!orderId,
+    ...options,
+  });
+};
+
+// Add refresh order mutation
+export const useRefreshOrder = (orderId: string, options?: {
   onSuccess?: (data: BaseResponse<ResponseOrder>) => void;
   onError?: (error: BaseResponse<null>) => void;
 }) => {
   return useMutation({
-    mutationFn: (orderId: string) => fetchGetOrderDetailByUserId(orderId),
-    ...options,
+    mutationFn: (id: string) => fetchGetOrderDetailByUserId(id),
+    ...options
   });
 };

@@ -2,7 +2,7 @@
 
 import CartItem from '@/components/popup/CartItem'
 import SideDrawer from '@/components/popup/SideDrawer'
-import { useCartWishlist } from '@/context/CartWishlistContext'
+import { useFetchGetCart } from '@/hooks/apis/cart'
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import { Box, Button, CircularProgress, Typography, useTheme } from '@mui/material'
@@ -18,12 +18,9 @@ interface CartPopupProps {
 const CartPopup: React.FC<CartPopupProps> = ({ open, onClose }) => {
   const theme = useTheme()
   const router = useRouter()
-  const {
-    cartData,
-    cartCount,
-    cartLoading,
-    refreshCart
-  } = useCartWishlist()
+
+  // Use cart query hook directly
+  const { data: cartData, isLoading: cartLoading, refetch: refreshCart } = useFetchGetCart()
 
   // Refetch cart data when popup opens
   useEffect(() => {
@@ -32,8 +29,9 @@ const CartPopup: React.FC<CartPopupProps> = ({ open, onClose }) => {
     }
   }, [open, refreshCart])
 
-  const cartItems = cartData?.items || []
-  const totalPrice = cartData?.totalPrice || 0
+  const cartItems = cartData?.data?.items || []
+  const cartCount = cartData?.data?.totalQuantity || 0
+  const totalPrice = cartData?.data?.totalPrice || 0
 
   const handleCheckout = () => {
     if (cartCount === 0) {
@@ -85,13 +83,7 @@ const CartPopup: React.FC<CartPopupProps> = ({ open, onClose }) => {
   )
 
   return (
-    <SideDrawer
-      open={open}
-      onClose={onClose}
-      title='Giỏ Hàng'
-      icon={<ShoppingCartIcon />}
-      footer={cartFooter}
-    >
+    <SideDrawer open={open} onClose={onClose} title='Giỏ Hàng' icon={<ShoppingCartIcon />} footer={cartFooter}>
       {cartLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
           <CircularProgress color='primary' />

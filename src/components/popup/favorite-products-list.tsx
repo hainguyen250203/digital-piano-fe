@@ -1,6 +1,7 @@
 'use client'
 
-import { useCartWishlist } from '@/context/CartWishlistContext'
+import { useFetchAddToCart } from '@/hooks/apis/cart'
+import { useDeleteFromWishlistByProduct } from '@/hooks/apis/wishlist'
 import { WishlistItemData } from '@/services/apis/wishlist'
 import { formatCurrency } from '@/utils/format'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
@@ -9,6 +10,8 @@ import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'
 import { alpha, Box, Button, CircularProgress, Fade, IconButton, Typography, useTheme } from '@mui/material'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useState } from 'react'
+import { toast } from 'react-toastify'
 
 interface FavoriteProductsListProps {
   favoriteProducts: WishlistItemData[]
@@ -17,21 +20,67 @@ interface FavoriteProductsListProps {
 
 export default function FavoriteProductsList({ favoriteProducts, onClose }: FavoriteProductsListProps) {
   const theme = useTheme()
-  
-  const { 
-    removeFromWishlist, 
-    addToCart,
-    isDeletingWishlistItem,
-    isAddingToCart
-  } = useCartWishlist()
+  const [processingItems, setProcessingItems] = useState<Set<string>>(new Set())
+
+  // Cart mutation
+  const { mutate: addToCartMutation } = useFetchAddToCart({
+    onSuccess: () => {
+      toast.success('Đã thêm vào giỏ hàng', { position: 'top-center' })
+    },
+    onError: error => {
+      if (error.errorCode === 4) {
+        toast.error('Vui lòng đăng nhập để sử dụng tính năng này', { position: 'top-center' })
+      } else {
+        toast.error(error.message || 'Lỗi khi thêm vào giỏ hàng', { position: 'top-center' })
+      }
+    }
+  })
+
+  // Wishlist mutations
+  const { mutate: removeFromWishlistMutation } = useDeleteFromWishlistByProduct({
+    onSuccess: () => {
+      toast.success('Đã xóa khỏi danh sách yêu thích', { position: 'top-center' })
+    },
+    onError: error => {
+      if (error.errorCode === 4) {
+        toast.error('Vui lòng đăng nhập để sử dụng tính năng này', { position: 'top-center' })
+      } else {
+        toast.error(error.message || 'Lỗi khi xóa khỏi danh sách yêu thích', { position: 'top-center' })
+      }
+    }
+  })
 
   const handleDeleteWishlist = (productId: string) => {
-    removeFromWishlist(productId)
+    setProcessingItems(prev => new Set(prev).add(`delete-${productId}`))
+    removeFromWishlistMutation(productId, {
+      onSettled: () => {
+        setProcessingItems(prev => {
+          const updated = new Set(prev)
+          updated.delete(`delete-${productId}`)
+          return updated
+        })
+      }
+    })
   }
 
   const handleAddToCart = (productId: string) => {
-    addToCart({ productId })
+    setProcessingItems(prev => new Set(prev).add(`cart-${productId}`))
+    addToCartMutation(
+      { productId },
+      {
+        onSettled: () => {
+          setProcessingItems(prev => {
+            const updated = new Set(prev)
+            updated.delete(`cart-${productId}`)
+            return updated
+          })
+        }
+      }
+    )
   }
+
+  const isProcessingDelete = (productId: string) => processingItems.has(`delete-${productId}`)
+  const isProcessingAddToCart = (productId: string) => processingItems.has(`cart-${productId}`)
 
   if (favoriteProducts.length === 0) {
     return (
@@ -75,9 +124,9 @@ export default function FavoriteProductsList({ favoriteProducts, onClose }: Favo
       <Box sx={{ p: 1 }}>
         {favoriteProducts.map((favoriteProduct: WishlistItemData) => {
           const { product } = favoriteProduct
-          const isProcessingDelete = isDeletingWishlistItem(product.id)
-          const isProcessingAddToCart = isAddingToCart(product.id)
-          const isProcessing = isProcessingDelete || isProcessingAddToCart
+          const isDeleting = isProcessingDelete(product.id)
+          const isAddingToCart = isProcessingAddToCart(product.id)
+          const isProcessing = isDeleting || isAddingToCart
 
           return (
             <Box
@@ -115,13 +164,7 @@ export default function FavoriteProductsList({ favoriteProducts, onClose }: Favo
                   backgroundColor: 'white'
                 }}
               >
-                <Image
-                  src={product.defaultImage?.url || '/placeholder-image.jpg'}
-                  alt={product.name}
-                  fill
-                  sizes='80px'
-                  style={{ objectFit: 'contain', padding: '4px' }}
-                />
+                <Image src={product.defaultImage?.url || '/placeholder-image.jpg'} alt={product.name} fill sizes='80px' style={{ objectFit: 'contain', padding: '4px' }} />
               </Box>
 
               {/* Product Details */}
@@ -182,7 +225,7 @@ export default function FavoriteProductsList({ favoriteProducts, onClose }: Favo
                   variant='outlined'
                   color='primary'
                   size='small'
-                  startIcon={isProcessingAddToCart ? <CircularProgress size={16} /> : <ShoppingCartOutlinedIcon />}
+                  startIcon={isAddingToCart ? <CircularProgress size={16} /> : <ShoppingCartOutlinedIcon />}
                   onClick={() => handleAddToCart(product.id)}
                   disabled={isProcessing}
                   sx={{
@@ -192,7 +235,7 @@ export default function FavoriteProductsList({ favoriteProducts, onClose }: Favo
                     alignSelf: 'flex-start'
                   }}
                 >
-                  {isProcessingAddToCart ? 'Đang thêm...' : 'Thêm vào giỏ'}
+                  {isAddingToCart ? 'Đang thêm...' : 'Thêm vào giỏ'}
                 </Button>
               </Box>
 
@@ -212,11 +255,7 @@ export default function FavoriteProductsList({ favoriteProducts, onClose }: Favo
                   }
                 }}
               >
-                {isProcessingDelete ? (
-                  <CircularProgress size={16} color="error" />
-                ) : (
-                  <DeleteOutlineIcon fontSize='small' />
-                )}
+                {isDeleting ? <CircularProgress size={16} color='error' /> : <DeleteOutlineIcon fontSize='small' />}
               </IconButton>
             </Box>
           )

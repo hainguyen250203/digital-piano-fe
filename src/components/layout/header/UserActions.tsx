@@ -1,7 +1,8 @@
 'use client'
 
 import NotificationMenu from '@/components/common/NotificationMenu'
-import { useCartWishlist } from '@/context/CartWishlistContext'
+import { useFetchGetCart } from '@/hooks/apis/cart'
+import { useFetchWishlist } from '@/hooks/apis/wishlist'
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import PersonIcon from '@mui/icons-material/Person'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
@@ -20,7 +21,8 @@ interface UserActionsProps {
  * Shows profile, favorites and cart icons
  */
 export default function UserActions({ isLoggedIn, openLoginPopup, openCartPopup, openFavoritesPopup }: UserActionsProps) {
-  const { cartCount, wishlistCount } = useCartWishlist()
+  const { data: Cart } = useFetchGetCart()
+  const { data: Favorite } = useFetchWishlist()
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -30,7 +32,7 @@ export default function UserActions({ isLoggedIn, openLoginPopup, openCartPopup,
           <NotificationMenu />
           <Tooltip title='Favorites'>
             <IconButton color='inherit' sx={{ ml: 1 }} onClick={openFavoritesPopup}>
-              <Badge badgeContent={wishlistCount} color='primary' showZero>
+              <Badge badgeContent={Favorite?.data?.length || 0} color='primary' showZero>
                 <FavoriteIcon />
               </Badge>
             </IconButton>
@@ -38,7 +40,7 @@ export default function UserActions({ isLoggedIn, openLoginPopup, openCartPopup,
 
           <Tooltip title='Shopping Cart'>
             <IconButton color='inherit' sx={{ ml: 1 }} onClick={openCartPopup}>
-              <Badge badgeContent={cartCount} color='primary' showZero>
+              <Badge badgeContent={Cart?.data.totalQuantity || 0} color='primary' showZero>
                 <ShoppingCartIcon />
               </Badge>
             </IconButton>

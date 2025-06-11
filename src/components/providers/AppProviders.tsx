@@ -1,7 +1,6 @@
 'use client'
 
 import { AuthStoreProvider } from '@/context/AuthStoreContext'
-import { CartWishlistProvider } from '@/context/CartWishlistContext'
 import QueryProvider from '@/context/QueryProvider'
 import { ReactNode, useEffect, useState } from 'react'
 import ToastProvider from './ToastProvider'
@@ -27,9 +26,7 @@ export default function AppProviders({ children }: AppProvidersProps) {
           children
         ) : (
           <AuthStoreProvider>
-            <CartWishlistProvider>
-              <ToastProvider>{children}</ToastProvider>
-            </CartWishlistProvider>
+            <ToastProvider>{children}</ToastProvider>
           </AuthStoreProvider>
         )}
       </div>

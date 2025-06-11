@@ -1,12 +1,14 @@
 'use client'
 
-import { useCartWishlist } from '@/context/CartWishlistContext'
+import { useFetchAddToCart } from '@/hooks/apis/cart'
+import { useAddToWishlist, useFetchWishlist } from '@/hooks/apis/wishlist'
 import { ProductListData } from '@/types/product.type'
 import { formatCurrency } from '@/utils/format'
 import { AddShoppingCart, Favorite } from '@mui/icons-material'
 import { alpha, Box, Card, CardContent, Chip, CircularProgress, IconButton, styled, Tooltip, Typography } from '@mui/material'
 import Image from 'next/image'
 import Link from 'next/link'
+import { toast } from 'react-toastify'
 
 // Type definitions
 type TagType = 'hot' | 'featured'
@@ -147,7 +149,39 @@ const CategoryChip = styled(Chip)(({ theme }) => ({
 }))
 
 export default function ProductItem({ product }: ProductItemProps) {
-  const { addToWishlist, addToCart, isAddingToWishlist, isAddingToCart, isInWishlist } = useCartWishlist()
+  // Fetch wishlist data to check if product is in wishlist
+  const { data: wishlistData } = useFetchWishlist()
+  const isInWishlist = wishlistData?.data?.some(item => item.product.id === product.id) || false
+
+  // Cart mutation
+  const { mutate: addToCartMutation, isPending: addToCartPending } = useFetchAddToCart({
+    onSuccess: data => {
+      console.log('Add to cart success - Full response:', data)
+      toast.success('Đã thêm vào giỏ hàng', { position: 'top-center' })
+    },
+    onError: error => {
+      console.log('Add to cart error:', error)
+      if (error.errorCode === 4) {
+        toast.error('Vui lòng đăng nhập để sử dụng tính năng này', { position: 'top-center' })
+      } else {
+        toast.error(error.message || 'Lỗi khi thêm vào giỏ hàng', { position: 'top-center' })
+      }
+    }
+  })
+
+  // Wishlist mutation
+  const { mutate: addToWishlistMutation, isPending: addToWishlistPending } = useAddToWishlist({
+    onSuccess: () => {
+      toast.success('Đã thêm vào danh sách yêu thích', { position: 'top-center' })
+    },
+    onError: error => {
+      if (error.errorCode === 4) {
+        toast.error('Vui lòng đăng nhập để sử dụng tính năng này', { position: 'top-center' })
+      } else {
+        toast.error(error.message || 'Lỗi khi thêm vào danh sách yêu thích', { position: 'top-center' })
+      }
+    }
+  })
 
   if (!product) {
     return null
@@ -156,17 +190,15 @@ export default function ProductItem({ product }: ProductItemProps) {
   const isOutOfStock = !product.stock || product.stock.quantity === 0
   const discountPercentage = product.salePrice ? Math.round(((product.price - product.salePrice) / product.price) * 100) : null
   const imageUrl = product.defaultImage?.url || 'https://www.aaronfaber.com/wp-content/uploads/2017/03/product-placeholder-wp.jpg'
-  const isProductInWishlist = isInWishlist(product.id)
-  const isProductAddingToCart = isAddingToCart(product.id)
-  const isProductAddingToWishlist = isAddingToWishlist(product.id)
 
   const handleAddToCart = () => {
     if (isOutOfStock) return
-    addToCart({ productId: product.id })
+    console.log('Attempting to add to cart:', product.id)
+    addToCartMutation({ productId: product.id })
   }
 
   const handleAddToWishlist = () => {
-    addToWishlist(product.id)
+    addToWishlistMutation(product.id)
   }
 
   return (
@@ -232,15 +264,28 @@ export default function ProductItem({ product }: ProductItemProps) {
           <IconButtonContainer className='action-buttons'>
             <Tooltip title='Thêm vào giỏ hàng'>
               <span>
-                <ActionIconButton aria-label='add to cart' color='primary' disabled={isProductAddingToCart || isOutOfStock} onClick={handleAddToCart}>
-                  {isProductAddingToCart ? <CircularProgress size={20} /> : <AddShoppingCart fontSize='small' />}
+                <ActionIconButton aria-label='add to cart' color='primary' disabled={addToCartPending || isOutOfStock} onClick={handleAddToCart}>
+                  {addToCartPending ? <CircularProgress size={20} /> : <AddShoppingCart fontSize='small' />}
                 </ActionIconButton>
               </span>
             </Tooltip>
-            <Tooltip title={isProductInWishlist ? 'Đã thêm vào yêu thích' : 'Thêm vào yêu thích'}>
-              <ActionIconButton aria-label='add to wishlist' color={isProductInWishlist ? 'error' : 'default'} disabled={isProductAddingToWishlist} onClick={handleAddToWishlist}>
-                {isProductAddingToWishlist ? <CircularProgress size={20} /> : <Favorite fontSize='small' />}
-              </ActionIconButton>
+            <Tooltip title={isInWishlist ? 'Đã thêm vào yêu thích' : 'Thêm vào yêu thích'}>
+              <span>
+                <ActionIconButton
+                  aria-label='add to wishlist'
+                  sx={{
+                    'color': isInWishlist ? 'error.main' : 'inherit',
+                    '&.Mui-disabled': {
+                      color: isInWishlist ? 'error.main' : 'inherit',
+                      opacity: isInWishlist ? 1 : 0.5
+                    }
+                  }}
+                  disabled={addToWishlistPending || isInWishlist}
+                  onClick={handleAddToWishlist}
+                >
+                  {addToWishlistPending ? <CircularProgress size={20} /> : <Favorite fontSize='small' />}
+                </ActionIconButton>
+              </span>
             </Tooltip>
           </IconButtonContainer>
         </MediaContainer>

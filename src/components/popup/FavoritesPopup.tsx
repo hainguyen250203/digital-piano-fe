@@ -2,7 +2,7 @@
 
 import FavoriteProductsList from '@/components/popup/favorite-products-list'
 import SideDrawer from '@/components/popup/SideDrawer'
-import { useCartWishlist } from '@/context/CartWishlistContext'
+import { useFetchWishlist } from '@/hooks/apis/wishlist'
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import { Box, CircularProgress } from '@mui/material'
 import { useEffect } from 'react'
@@ -13,7 +13,7 @@ interface FavoritesPopupProps {
 }
 
 export default function FavoritesPopup({ open, onClose }: FavoritesPopupProps) {
-  const { wishlistData, wishlistLoading, refreshWishlist } = useCartWishlist()
+  const { data: wishlistData, isLoading: wishlistLoading, refetch: refreshWishlist } = useFetchWishlist()
 
   // Refresh wishlist data when the popup opens
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function FavoritesPopup({ open, onClose }: FavoritesPopupProps) {
           <CircularProgress />
         </Box>
       ) : (
-        <FavoriteProductsList favoriteProducts={wishlistData || []} onClose={onClose} />
+        <FavoriteProductsList favoriteProducts={wishlistData?.data || []} onClose={onClose} />
       )}
     </SideDrawer>
   )

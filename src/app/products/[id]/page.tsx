@@ -6,33 +6,64 @@ import ProductGallery from '@/components/Product/ProductGallery'
 import ProductInfo from '@/components/Product/ProductInfo'
 import ProductList from '@/components/Product/ProductList'
 import ProductReviews from '@/components/Product/ProductReviews'
-import { CartWishlistProvider, useCartWishlist } from '@/context/CartWishlistContext'
+import { useFetchAddToCart } from '@/hooks/apis/cart'
 import { useFetchProductDetail, useFetchProductRelated } from '@/hooks/apis/product'
+import { useAddToWishlist, useDeleteFromWishlistByProduct, useFetchWishlist } from '@/hooks/apis/wishlist'
 import { NavigateNext, Widgets } from '@mui/icons-material'
 import { Box, Breadcrumbs, Grid, Link, Typography } from '@mui/material'
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { toast } from 'react-toastify'
 
-// Component that safely uses the CartWishlist context
-function ProductDetailWithContext({ productId }: { productId: string }) {
-  const { addToWishlist, addToCart, isAddingToWishlist, isAddingToCart, isInWishlist } = useCartWishlist()
-  
-  // Only fetch data if productId is valid
+function ProductDetailContent({ productId }: { productId: string }) {
+  // Fetch product data
   const { data: productData, isLoading, error } = useFetchProductDetail(productId)
   const { data: relatedProducts } = useFetchProductRelated(productId)
-  
+
+  // Cart and wishlist hooks
+  const { mutate: addToCart, isPending: isAddingToCart } = useFetchAddToCart()
+  const { data: wishlistData } = useFetchWishlist()
+  const { mutate: addToWishlist, isPending: isAddingToWishlist } = useAddToWishlist()
+  const { mutate: removeFromWishlist } = useDeleteFromWishlistByProduct()
+
   const product = productData?.data
-  const isProductInWishlist = product ? isInWishlist(productId) : false
-  const isProductAddingToCart = isAddingToCart(productId)
-  const isProductAddingToWishlist = isAddingToWishlist(productId)
+  const isProductInWishlist = wishlistData?.data?.some(item => item.productId === productId) || false
 
   const handleAddToFavorites = () => {
-    addToWishlist(productId)
+    if (isProductInWishlist) {
+      removeFromWishlist(productId, {
+        onSuccess: () => {
+          toast.success('Đã xóa khỏi danh sách yêu thích')
+        },
+        onError: () => {
+          toast.error('Không thể xóa khỏi danh sách yêu thích')
+        }
+      })
+    } else {
+      addToWishlist(productId, {
+        onSuccess: () => {
+          toast.success('Đã thêm vào danh sách yêu thích')
+        },
+        onError: () => {
+          toast.error('Không thể thêm vào danh sách yêu thích')
+        }
+      })
+    }
   }
 
   const handleAddToCart = () => {
     if (product) {
-      addToCart({ productId })
+      addToCart(
+        { productId },
+        {
+          onSuccess: () => {
+            toast.success('Đã thêm vào giỏ hàng')
+          },
+          onError: () => {
+            toast.error('Không thể thêm vào giỏ hàng')
+          }
+        }
+      )
     }
   }
 
@@ -65,26 +96,21 @@ function ProductDetailWithContext({ productId }: { productId: string }) {
         </Link>
         <Typography color='text.primary'>{product.name}</Typography>
       </Breadcrumbs>
-      
+
       {/* Product Main Info Section */}
       <Grid container spacing={{ xs: 3, md: 4 }} sx={{ mb: 5 }}>
         {/* Left: Product Gallery */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <ProductGallery 
-            images={product.images || []} 
-            defaultImage={product.defaultImage}
-            videoUrl={product.videoUrl} 
-            productName={product.name}
-          />
+          <ProductGallery images={product.images || []} defaultImage={product.defaultImage} videoUrl={product.videoUrl} productName={product.name} />
         </Grid>
-        
+
         {/* Right: Product Info */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <ProductInfo 
+          <ProductInfo
             product={product}
             isProductInWishlist={isProductInWishlist}
-            isProductAddingToCart={isProductAddingToCart}
-            isProductAddingToWishlist={isProductAddingToWishlist}
+            isProductAddingToCart={isAddingToCart}
+            isProductAddingToWishlist={isAddingToWishlist}
             onAddToCart={handleAddToCart}
             onAddToWishlist={handleAddToFavorites}
           />
@@ -110,42 +136,25 @@ function ProductDetailWithContext({ productId }: { productId: string }) {
   )
 }
 
-// Fallback component that doesn't use CartWishlist context
-function ProductDetailContent({ productId }: { productId: string }) {
-  // Wrap the component with error handling
-  try {
-    return <ProductDetailWithContext productId={productId} />
-  } catch (error) {
-    console.error('Error in ProductDetailWithContext:', error)
-    return <ProductDetailSkeleton />
-  }
-}
-
 // Main component with error handling
 export default function ProductDetailPage() {
-  // Use the Next.js useParams hook to get the ID from the URL
   const params = useParams()
   const id = params?.id as string
   const [mounted, setMounted] = useState(false)
-  
+
   useEffect(() => {
     setMounted(true)
   }, [])
-  
+
   // Only render the content after client-side hydration
   if (!mounted) {
     return <ProductDetailSkeleton />
   }
-  
+
   // If no ID is available, show loading state
   if (!id) {
     return <ProductDetailSkeleton />
   }
-  
-  // We wrap the component in its own CartWishlistProvider to ensure it's available
-  return (
-    <CartWishlistProvider>
-      <ProductDetailContent productId={id} />
-    </CartWishlistProvider>
-  )
+
+  return <ProductDetailContent productId={id} />
 }
