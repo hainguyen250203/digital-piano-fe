@@ -3,7 +3,6 @@ import { useFetchCategoryList } from '@/hooks/apis/category'
 import { useFetchCreateProduct } from '@/hooks/apis/product'
 import { useFetchProductTypeBySubCategory } from '@/hooks/apis/product-type'
 import { useFetchSubCategoryByCategory } from '@/hooks/apis/sub-category'
-import { QueryKey } from '@/models/QueryKey'
 import { CreateProductFormData } from '@/types/product.type'
 import CloseIcon from '@mui/icons-material/Close'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
@@ -30,7 +29,6 @@ import {
   TextField,
   Typography
 } from '@mui/material'
-import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'react-toastify'
 
@@ -63,9 +61,8 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
   const [defaultImagePreview, setDefaultImagePreview] = useState<string>('')
   const [description, setDescription] = useState<Array<{ type: string; content: string | string[] | { src: string; alt: string } }>>([{ type: 'heading', content: '' }])
   const [categoryId, setCategoryId] = useState<string>('')
-  
+
   // ===== HOOKS =====
-  const queryClient = useQueryClient()
   const { data: brandList, isLoading: isBrandLoading } = useFetchBrandList()
   const { data: categoryList, isLoading: isCategoryLoading } = useFetchCategoryList()
   const { data: subCategoryList, isLoading: isSubCategoryLoading } = useFetchSubCategoryByCategory(categoryId)
@@ -74,7 +71,6 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
     onSuccess: () => {
       toast.success('Tạo sản phẩm thành công!')
       resetForm()
-      queryClient.invalidateQueries({ queryKey: [QueryKey.PRODUCT_LIST] })
       onClose()
     },
     onError: error => {
@@ -130,7 +126,7 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
     if (!formData.subCategoryId) errors.subCategoryId = 'Danh mục con là bắt buộc'
     if (!defaultImageFile) errors.defaultImage = 'Hình ảnh mặc định là bắt buộc'
     if (uploadedFiles.length > 8) errors.images = 'Tối đa 8 hình ảnh bổ sung được phép'
-    
+
     // Validate video URL if provided
     if (formData.videoUrl && !isValidVideoUrl(formData.videoUrl)) {
       errors.videoUrl = 'Vui lòng nhập URL YouTube hoặc Vimeo hợp lệ'
@@ -139,7 +135,7 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
     setValidationErrors(errors)
     return Object.keys(errors).length === 0
   }
-  
+
   const isValidVideoUrl = (url: string): boolean => {
     // Simple validation for YouTube or Vimeo URLs
     const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/i
@@ -249,33 +245,33 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
   const handleDefaultImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0]
-      
+
       // Validate file type and size
       const isValidType = file.type.startsWith('image/')
       const isValidSize = file.size < 5 * 1024 * 1024 // 5MB max
-      
+
       if (!isValidType) {
         toast.error('Mỗi hình ảnh không được vượt quá 5MB')
         return
       }
-      
+
       if (!isValidSize) {
         toast.error('Mỗi hình ảnh không được vượt quá 5MB')
         return
       }
-      
+
       setDefaultImageFile(file)
-      
+
       // Create preview URL
       const preview = URL.createObjectURL(file)
       setDefaultImagePreview(preview)
-      
+
       // Update formData
       setFormData(prev => ({
         ...prev,
         defaultImage: file
       }))
-      
+
       // Clear validation error
       if (validationErrors.defaultImage) {
         setValidationErrors(prev => {
@@ -291,17 +287,17 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
     // Remove from preview array
     const newPreviews = uploadPreview.filter((_, index) => index !== indexToRemove)
     setUploadPreview(newPreviews)
-    
+
     // Remove from files array
     const newFiles = uploadedFiles.filter((_, index) => index !== indexToRemove)
     setUploadedFiles(newFiles)
-    
+
     // Update formData
     setFormData(prev => ({
       ...prev,
       imageFiles: newFiles
     }))
-    
+
     // If the last image was removed, show validation error
     if (newFiles.length === 0) {
       setValidationErrors(prev => ({
@@ -314,13 +310,13 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
   const handleRemoveDefaultImage = () => {
     setDefaultImageFile(null)
     setDefaultImagePreview('')
-    
+
     // Update formData
     setFormData(prev => ({
       ...prev,
       defaultImage: null
     }))
-    
+
     // Show validation error
     setValidationErrors(prev => ({
       ...prev,
@@ -439,7 +435,7 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
         }}
       >
         <IconButton
-          aria-label="close"
+          aria-label='close'
           onClick={onClose}
           style={{
             position: 'absolute',
@@ -450,13 +446,13 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
           }}
           sx={{
             '&:hover': {
-              bgcolor: 'rgba(0, 0, 0, 0.1)',
+              bgcolor: 'rgba(0, 0, 0, 0.1)'
             }
           }}
         >
           <CloseIcon />
         </IconButton>
-        
+
         <Typography variant='h5' mb={3} style={{ paddingRight: 32 }}>
           Tạo sản phẩm mới
         </Typography>
@@ -472,15 +468,15 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid size={12}>
-                      <TextField 
-                        fullWidth 
-                        label='Tên sản phẩm' 
-                        name='name' 
-                        value={formData.name || ''} 
-                        onChange={handleChange} 
-                        required 
-                        error={!!validationErrors.name} 
-                        helperText={validationErrors.name} 
+                      <TextField
+                        fullWidth
+                        label='Tên sản phẩm'
+                        name='name'
+                        value={formData.name || ''}
+                        onChange={handleChange}
+                        required
+                        error={!!validationErrors.name}
+                        helperText={validationErrors.name}
                       />
                     </Grid>
                     <Grid size={6}>
@@ -500,11 +496,11 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
                       <TextField fullWidth label='Giá khuyến mại' name='salePrice' type='number' value={formData.salePrice || ''} onChange={handleChange} />
                     </Grid>
                     <Grid size={12}>
-                      <TextField 
-                        fullWidth 
-                        label='URL Video (YouTube hoặc Vimeo)' 
-                        name='videoUrl' 
-                        value={formData.videoUrl || ''} 
+                      <TextField
+                        fullWidth
+                        label='URL Video (YouTube hoặc Vimeo)'
+                        name='videoUrl'
+                        value={formData.videoUrl || ''}
                         onChange={handleChange}
                         placeholder='https://youtube.com/watch?v=...'
                         error={!!validationErrors.videoUrl}
@@ -533,7 +529,7 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
                 </CardContent>
               </Card>
             </Grid>
-            
+
             {/* Category Information */}
             <Grid size={12}>
               <Card>
@@ -545,12 +541,12 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
                     <Grid size={4}>
                       <FormControl fullWidth disabled={isCategoryLoading} error={!!validationErrors.categoryId}>
                         <InputLabel>Danh mục</InputLabel>
-                        <Select 
-                          MenuProps={{ PaperProps: { style: { maxHeight: 200, overflowY: 'auto' } } }} 
-                          name='categoryId' 
-                          value={categoryId} 
-                          onChange={handleCategoryChange} 
-                          label='Danh mục' 
+                        <Select
+                          MenuProps={{ PaperProps: { style: { maxHeight: 200, overflowY: 'auto' } } }}
+                          name='categoryId'
+                          value={categoryId}
+                          onChange={handleCategoryChange}
+                          label='Danh mục'
                           required
                         >
                           {categoryList?.data.map(category => (
@@ -603,12 +599,12 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
                     <Grid size={12}>
                       <FormControl fullWidth disabled={isBrandLoading} error={!!validationErrors.brandId}>
                         <InputLabel>Thương hiệu</InputLabel>
-                        <Select 
-                          MenuProps={{ PaperProps: { style: { maxHeight: 200, overflowY: 'auto' } } }} 
-                          name='brandId' 
-                          value={formData.brandId || ''} 
-                          onChange={handleSelectChange} 
-                          label='Thương hiệu' 
+                        <Select
+                          MenuProps={{ PaperProps: { style: { maxHeight: 200, overflowY: 'auto' } } }}
+                          name='brandId'
+                          value={formData.brandId || ''}
+                          onChange={handleSelectChange}
+                          label='Thương hiệu'
                           required
                         >
                           {brandList?.data.map(brand => (
@@ -624,7 +620,7 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
                 </CardContent>
               </Card>
             </Grid>
-            
+
             {/* Product Description */}
             <Grid size={12}>
               <Card>
@@ -634,13 +630,13 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
                   </Typography>
                   <Box>
                     {description.map((item, index) => (
-                      <Box 
-                        key={index} 
-                        mb={3} 
-                        p={2} 
-                        style={{ 
-                          border: '1px solid #e0e0e0', 
-                          borderRadius: 4 
+                      <Box
+                        key={index}
+                        mb={3}
+                        p={2}
+                        style={{
+                          border: '1px solid #e0e0e0',
+                          borderRadius: 4
                         }}
                       >
                         <Select
@@ -657,8 +653,8 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
                         >
                           {[
                             { value: 'heading', label: 'Tiêu đề' },
-                            { value: 'paragraph', label: 'Đoạn văn' }, 
-                            { value: 'specs', label: 'Thông số kỹ thuật' }, 
+                            { value: 'paragraph', label: 'Đoạn văn' },
+                            { value: 'specs', label: 'Thông số kỹ thuật' },
                             { value: 'image', label: 'Hình ảnh' }
                           ].map(type => (
                             <MenuItem key={type.value} value={type.value}>
@@ -765,7 +761,7 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
                 </CardContent>
               </Card>
             </Grid>
-            
+
             {/* Product Images */}
             <Grid size={12}>
               <Card>
@@ -773,29 +769,29 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
                   <Typography variant='h6' mb={2}>
                     Hình ảnh sản phẩm
                   </Typography>
-                  
+
                   {/* Default Image Upload */}
                   <Box mb={3}>
                     <Typography variant='subtitle1' mb={1} fontWeight='bold'>
                       Hình ảnh mặc định (Bắt buộc)
                     </Typography>
-                    <Button 
-                      component='label' 
-                      variant='contained' 
-                      startIcon={<CloudUploadIcon />} 
-                      color={validationErrors.defaultImage ? 'error' : 'primary'} 
-                      fullWidth 
+                    <Button
+                      component='label'
+                      variant='contained'
+                      startIcon={<CloudUploadIcon />}
+                      color={validationErrors.defaultImage ? 'error' : 'primary'}
+                      fullWidth
                       style={{ paddingTop: 12, paddingBottom: 12, marginBottom: 16 }}
                     >
                       Tải lên hình ảnh mặc định
                       <VisuallyHiddenInput type='file' accept='image/*' onChange={handleDefaultImageChange} />
                     </Button>
                     {validationErrors.defaultImage && <FormHelperText error>{validationErrors.defaultImage}</FormHelperText>}
-                    
+
                     {/* Default image preview */}
                     {defaultImagePreview && (
                       <Box
-                        position="relative"
+                        position='relative'
                         width={180}
                         height={180}
                         borderRadius={1}
@@ -809,7 +805,7 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
                         <Box
                           component='img'
                           src={defaultImagePreview}
-                          alt="Default product image"
+                          alt='Default product image'
                           style={{
                             width: '100%',
                             height: '100%',
@@ -824,7 +820,7 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
                             right: 4,
                             backgroundColor: 'rgba(0,0,0,0.5)',
                             color: 'white',
-                            padding: '4px',
+                            padding: '4px'
                           }}
                           sx={{
                             '&:hover': {
@@ -838,18 +834,18 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
                       </Box>
                     )}
                   </Box>
-                  
+
                   {/* Additional Images Upload */}
                   <Box mb={2}>
                     <Typography variant='subtitle1' mb={1} fontWeight='bold'>
                       Hình ảnh bổ sung (Tùy chọn, Tối đa 8)
                     </Typography>
-                    <Button 
-                      component='label' 
-                      variant='contained' 
-                      startIcon={<CloudUploadIcon />} 
-                      color={validationErrors.images ? 'error' : 'primary'} 
-                      fullWidth 
+                    <Button
+                      component='label'
+                      variant='contained'
+                      startIcon={<CloudUploadIcon />}
+                      color={validationErrors.images ? 'error' : 'primary'}
+                      fullWidth
                       style={{ paddingTop: 12, paddingBottom: 12, marginBottom: 16 }}
                     >
                       Tải lên hình ảnh bổ sung
@@ -909,7 +905,7 @@ export default function CreateProductModal({ open, onClose }: CreateProductModal
             </Grid>
           </Grid>
 
-          <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
+          <Box display='flex' justifyContent='flex-end' gap={2} mt={3}>
             <Button variant='outlined' onClick={handleCancel} disabled={isSubmitting}>
               Hủy
             </Button>

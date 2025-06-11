@@ -1,7 +1,7 @@
 import API from "@/services/axios";
 import { Endpoint } from "@/services/endpoint";
 import { BaseResponse } from "@/types/base-response";
-import { ProductListByCollection, ProductListByProductType, ProductListBySubCategory } from "@/types/product.type";
+import { ProductListByCollection, ProductListByProductType, ProductListBySubCategory, ProductListData, ResponseDeleteProductType, ResponseUpdateProductType } from "@/types/product.type";
 
 export enum SortOrder {
   ASC = 'asc',
@@ -29,38 +29,26 @@ export const fetchProductRelated = async (id: string) => {
   return data.data;
 };
 
-export const fetchCreateProduct = async (createProductFormData: FormData) => {
+export const fetchCreateProduct = async (createProductFormData: FormData): Promise<BaseResponse<ProductListData>> => {
   // Log form data 
   console.log("Product form data entries:");
   for (const [key, value] of createProductFormData.entries()) {
     if (value instanceof File) {
-      console.log(`${key}: File - ${value.name} (${value.type}, ${value.size} bytes)`);
     } else {
       console.log(`${key}: ${value}`);
     }
   }
 
   try {
-    const { data } = await API.post(
-      Endpoint().product.create,
-      createProductFormData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        // Prevent axios from trying to JSON.stringify the FormData
-        transformRequest: [(data) => data],
-      }
+    const { data } = await API.post(Endpoint().product.create, createProductFormData, { headers: { 'Content-Type': 'multipart/form-data', }, transformRequest: [(data) => data], }
     );
-    console.log("Product created:", data);
     return data;
   } catch (error) {
-    console.error("Error creating product:", error);
     throw error;
   }
 };
 
-export const fetchUpdateProduct = async (id: string, updateProductFormData: FormData) => {
+export const fetchUpdateProduct = async (id: string, updateProductFormData: FormData): Promise<BaseResponse<ResponseUpdateProductType>> => {
   try {
     const { data } = await API.patch(
       Endpoint().product.update(id),
@@ -81,10 +69,9 @@ export const fetchUpdateProduct = async (id: string, updateProductFormData: Form
   }
 };
 
-export const fetchDeleteProduct = async (id: string) => {
+export const fetchDeleteProduct = async (id: string): Promise<BaseResponse<ResponseDeleteProductType>> => {
   try {
     const { data } = await API.delete(Endpoint().product.delete(id));
-    console.log("Product deleted:", data);
     return data;
   } catch (error) {
     console.error("Error deleting product:", error);

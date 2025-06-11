@@ -1,97 +1,9 @@
 import { QueryKey } from "@/models/QueryKey";
 import { fetchCreateProduct, fetchDeleteProduct, fetchProductDetail, fetchProductFeatured, fetchProductHotSale, fetchProductList, fetchProductListByBrand, fetchProductListByCategory, fetchProductListByProductType, fetchProductListBySubCategory, fetchProductRelated, fetchUpdateProduct, fetchUpdateProductImages } from "@/services/apis/product";
 import { BaseResponse } from "@/types/base-response";
+import { ProductDetailData, ProductListData, ResponseDeleteProductType, ResponseUpdateProductType } from "@/types/product.type";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-
-
-export type ProductListData = {
-  id: string;
-  name: string;
-  price: number;
-  salePrice: number | null;
-  isHotSale: boolean;
-  isFeatured: boolean;
-  isDeleted?: boolean;
-  createdAt: string;
-  brand: {
-    id: string;
-    name: string;
-  };
-  subCategory: {
-    id: string;
-    name: string;
-  };
-  category: {
-    id: string;
-    name: string;
-  };
-  productType: {
-    id: string;
-    name: string;
-  } | null;
-  defaultImage: {
-    id: string;
-    url: string;
-  } | null;
-  stock: {
-    quantity: number;
-  } | null;
-};
-
-
-export type ProductDetailData = {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  salePrice: number | null;
-  videoUrl: string | null;
-  isHotSale: boolean;
-  isFeatured: boolean;
-  isDeleted?: boolean;
-  createdAt: string;
-  updatedAt: string;
-  brand: {
-    id: string;
-    name: string;
-  };
-  productType: {
-    id: string;
-    name: string;
-  } | null;
-  subCategory: {
-    id: string;
-    name: string;
-  };
-  category: {
-    id: string;
-    name: string;
-  };
-  defaultImage: {
-    id: string;
-    url: string;
-  } | null;
-  images: {
-    id: string;
-    url: string;
-  }[];
-  stock: {
-    quantity: number;
-  } | null;
-  reviews: {
-    id: string;
-    rating: number;
-    content: string;
-    createdAt: string;
-    updatedAt: string;
-    user: {
-      id: string;
-      email: string;
-      avatarUrl: string | null;
-    }
-  }[]
-};
 
 export const useFetchProductList = () => {
   const options = {
@@ -139,54 +51,155 @@ export const useFetchProductDetail = (id: string) => {
 };
 
 export const useFetchCreateProduct = (options?: {
-  onSuccess?: (data: BaseResponse<null>) => void;
+  onSuccess?: (data: BaseResponse<ProductListData>) => void;
   onError?: (error: BaseResponse<null>) => void;
 }) => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: FormData) => fetchCreateProduct(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.PRODUCT_LIST] });
+    mutationFn: async (data: FormData) => {
+      try {
+        const result = await fetchCreateProduct(data);
+        return result;
+      } catch (error) {
+        throw error;
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData<BaseResponse<ProductListData[]>>(
+        [QueryKey.PRODUCT_LIST],
+        (old) => {
+          if (!old?.data) { return old; } const newData = { ...old, data: [data.data, ...(old.data || [])] };
+          return newData;
+        }
+      );
+      options?.onSuccess?.(data);
     },
     onError: (error: BaseResponse<null>) => {
-      return error.message
+      options?.onError?.(error);
     },
-    ...options
   });
 };
 
 export const useFetchUpdateProduct = (options?: {
-  onSuccess?: (data: BaseResponse<null>) => void;
+  onSuccess?: (data: BaseResponse<ResponseUpdateProductType>) => void;
   onError?: (error: BaseResponse<null>) => void;
 }) => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: FormData }) => fetchUpdateProduct(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.PRODUCT_LIST] });
-      queryClient.invalidateQueries({ queryKey: [QueryKey.PRODUCT_DETAIL] });
+    mutationFn: ({ id, data }: { id: string; data: FormData }) =>
+      fetchUpdateProduct(id, data),
+    onSuccess: (res) => {
+      const updated = res.data;
+
+      // Cập nhật danh sách sản phẩm
+      queryClient.setQueryData<BaseResponse<ProductListData[]>>(
+        [QueryKey.PRODUCT_LIST],
+        (old) => {
+          if (!old?.data) return old;
+          const newData = old.data.map((item) =>
+            item.id === updated.id
+              ? {
+                ...item,
+                name: updated.name,
+                price: updated.price,
+                salePrice: updated.salePrice,
+                isHotSale: updated.isHotSale,
+                isFeatured: updated.isFeatured,
+                isDeleted: updated.isDeleted,
+                createdAt: updated.createdAt,
+                brand: updated.brand,
+                productType: updated.productType,
+                subCategory: updated.subCategory,
+                category: updated.category,
+                defaultImage: updated.defaultImage,
+                stock: typeof updated.stock === 'number'
+                  ? { quantity: updated.stock }
+                  : null,
+              }
+              : item
+          );
+
+          return { ...old, data: newData };
+        }
+      );
+
+      // Cập nhật chi tiết sản phẩm
+      queryClient.setQueryData<BaseResponse<ProductDetailData>>(
+        [QueryKey.PRODUCT_DETAIL, updated.id],
+        (old) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              ...updated,
+              stock: typeof updated.stock === 'number'
+                ? { quantity: updated.stock }
+                : null,
+              reviews: updated.reviews.map((r) => ({
+                id: r.id,
+                rating: r.rating,
+                content: r.content,
+                createdAt: r.createdAt,
+                updatedAt: r.updatedAt,
+                user: {
+                  id: r.user.id,
+                  email: '', // Không có email từ API
+                  avatarUrl: r.user.avatarUrl ?? null,
+                },
+              })),
+              // Parse description từ string -> DescriptionBlock[]
+              description: (() => {
+                try {
+                  return JSON.parse(updated.description);
+                } catch {
+                  return []; // fallback nếu lỗi parse
+                }
+              })(),
+            },
+          };
+        }
+      );
+
+      options?.onSuccess?.(res);
     },
     onError: (error: BaseResponse<null>) => {
-      return error.message
+      options?.onError?.(error);
+      return error.message;
     },
-    ...options
   });
 };
 
+
 export const useFetchDeleteProduct = (options?: {
-  onSuccess?: (data: BaseResponse<null>) => void;
+  onSuccess?: (data: BaseResponse<ResponseDeleteProductType>) => void;
   onError?: (error: BaseResponse<null>) => void;
 }) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => fetchDeleteProduct(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.PRODUCT_LIST] });
+    onSuccess: (res) => {
+      const deleted = res.data;
+
+      // Cập nhật danh sách sản phẩm
+      queryClient.setQueryData<BaseResponse<ProductListData[]>>(
+        [QueryKey.PRODUCT_LIST],
+        (old) => {
+          if (!old?.data) return old;
+          const updatedData = old.data.map((item) =>
+            item.id === deleted.id
+              ? { ...item, isDeleted: deleted.isDeleted }
+              : item
+          );
+          return { ...old, data: updatedData };
+        }
+      )
+      options?.onSuccess?.(res)
     },
     onError: (error: BaseResponse<null>) => {
       return error.message
     },
-    ...options
   });
 };
 

@@ -286,7 +286,7 @@ export default function NotificationMenu() {
                       <>
                         <Typography
                           variant='body2'
-                          component='span'
+                          component='div'
                           color='text.secondary'
                           sx={{
                             display: 'block',

@@ -4,8 +4,8 @@ import DeleteConfirmationDialog from '@/components/admin/common/delete-confirmat
 import CreateProductModal from '@/components/admin/product/create-product-modal'
 import EditProductModal from '@/components/admin/product/edit-product-modal'
 import ViewProductModal from '@/components/admin/product/view-product-modal'
-import { ProductListData, useFetchDeleteProduct, useFetchProductDetail, useFetchUpdateProduct } from '@/hooks/apis/product'
-import { QueryKey } from '@/models/QueryKey'
+import { useFetchDeleteProduct, useFetchProductDetail, useFetchUpdateProduct } from '@/hooks/apis/product'
+import { ProductListData } from '@/types/product.type'
 import { formatCurrency } from '@/utils/format'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -16,7 +16,6 @@ import FeaturedIcon from '@mui/icons-material/Star'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import FireIcon from '@mui/icons-material/Whatshot'
 import { Box, Button, Chip, IconButton, InputAdornment, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Tooltip, Typography } from '@mui/material'
-import { useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { toast } from 'react-toastify'
 
@@ -33,7 +32,6 @@ export default function ProductList({ products }: { products: ProductListData[] 
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
 
   // HOOKS
-  const queryClient = useQueryClient()
   const { data: selectedProduct } = useFetchProductDetail(selectedProductId || '')
 
   const { mutate: updateProduct, isPending: isUpdateProductPending } = useFetchUpdateProduct({
@@ -41,7 +39,6 @@ export default function ProductList({ products }: { products: ProductListData[] 
       toast.success('Cập nhật sản phẩm thành công!')
       handleCloseEditModal()
       handleCloseRestoreDialog()
-      queryClient.invalidateQueries({ queryKey: [QueryKey.PRODUCT_LIST] })
     },
     onError: error => {
       toast.error(error.message)
@@ -51,7 +48,6 @@ export default function ProductList({ products }: { products: ProductListData[] 
   const { mutate: deleteProduct, isPending: isDeleteProductPending } = useFetchDeleteProduct({
     onSuccess: () => {
       toast.success('Xóa sản phẩm thành công!')
-      queryClient.invalidateQueries({ queryKey: [QueryKey.PRODUCT_LIST] })
       handleCloseDeleteDialog()
     },
     onError: error => {
@@ -244,24 +240,24 @@ export default function ProductList({ products }: { products: ProductListData[] 
                       <TableCell>
                         <Box display='flex' gap={1}>
                           {isDeleted ? (
-                            <Tooltip title="Khôi phục">
+                            <Tooltip title='Khôi phục'>
                               <IconButton color='success' onClick={() => handleRestore(row.id)}>
                                 <RestoreIcon />
                               </IconButton>
                             </Tooltip>
                           ) : (
                             <>
-                              <Tooltip title="Xem">
+                              <Tooltip title='Xem'>
                                 <IconButton color='info' onClick={() => handleView(row.id)}>
                                   <VisibilityIcon />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="Sửa">
+                              <Tooltip title='Sửa'>
                                 <IconButton color='primary' onClick={() => handleEdit(row.id)}>
                                   <EditIcon />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="Xóa">
+                              <Tooltip title='Xóa'>
                                 <IconButton color='error' onClick={() => handleDelete(row.id)}>
                                   <DeleteIcon />
                                 </IconButton>

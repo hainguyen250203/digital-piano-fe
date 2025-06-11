@@ -1,9 +1,9 @@
 import { useFetchBrandList } from '@/hooks/apis/brand'
 import { useFetchCategoryList } from '@/hooks/apis/category'
-import { ProductDetailData, useFetchUpdateProduct } from '@/hooks/apis/product'
+import { useFetchUpdateProduct } from '@/hooks/apis/product'
 import { useFetchProductTypeBySubCategory } from '@/hooks/apis/product-type'
 import { useFetchSubCategoryByCategory } from '@/hooks/apis/sub-category'
-import { QueryKey } from '@/models/QueryKey'
+import { ProductDetailData } from '@/types/product.type'
 import CloseIcon from '@mui/icons-material/Close'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import {
@@ -29,7 +29,6 @@ import {
   TextField,
   Typography
 } from '@mui/material'
-import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 
@@ -79,7 +78,6 @@ export default function EditProductModal({ open, onClose, product }: EditProduct
   const [categoryId, setCategoryId] = useState<string>('')
 
   // HOOKS
-  const queryClient = useQueryClient()
   const { data: brandList, isLoading: isBrandLoading } = useFetchBrandList()
   const { data: categoryList, isLoading: isCategoryLoading } = useFetchCategoryList()
   const { data: subCategoryList, isLoading: isSubCategoryLoading } = useFetchSubCategoryByCategory(categoryId)
@@ -88,8 +86,6 @@ export default function EditProductModal({ open, onClose, product }: EditProduct
   const { mutate: updateProduct, isPending: isUpdatingProduct } = useFetchUpdateProduct({
     onSuccess: () => {
       toast.success('Cập nhật sản phẩm thành công!')
-      queryClient.invalidateQueries({ queryKey: [QueryKey.PRODUCT_LIST] })
-      queryClient.invalidateQueries({ queryKey: [QueryKey.PRODUCT_DETAIL, product?.id] })
       onClose()
     },
     onError: error => {
@@ -705,8 +701,8 @@ export default function EditProductModal({ open, onClose, product }: EditProduct
                         >
                           {[
                             { value: 'heading', label: 'Tiêu đề' },
-                            { value: 'paragraph', label: 'Đoạn văn' }, 
-                            { value: 'specs', label: 'Thông số kỹ thuật' }, 
+                            { value: 'paragraph', label: 'Đoạn văn' },
+                            { value: 'specs', label: 'Thông số kỹ thuật' },
                             { value: 'image', label: 'Hình ảnh' }
                           ].map(type => (
                             <MenuItem key={type.value} value={type.value}>
@@ -827,29 +823,29 @@ export default function EditProductModal({ open, onClose, product }: EditProduct
                     <Typography variant='subtitle1' mb={1} fontWeight='bold'>
                       Hình ảnh mặc định (Bắt buộc)
                     </Typography>
-                    
-                    <Button 
-                      component='label' 
-                      variant='contained' 
-                      startIcon={<CloudUploadIcon />} 
-                      color={validationErrors.defaultImage ? 'error' : 'primary'} 
-                      fullWidth 
+
+                    <Button
+                      component='label'
+                      variant='contained'
+                      startIcon={<CloudUploadIcon />}
+                      color={validationErrors.defaultImage ? 'error' : 'primary'}
+                      fullWidth
                       style={{ paddingTop: 12, paddingBottom: 12, marginBottom: 16 }}
                     >
                       Tải lên hình ảnh mặc định
                       <VisuallyHiddenInput type='file' accept='image/*' onChange={handleDefaultImageChange} />
                     </Button>
-                    
+
                     {validationErrors.defaultImage && (
                       <FormHelperText error style={{ marginBottom: 16 }}>
                         {validationErrors.defaultImage}
                       </FormHelperText>
                     )}
-                    
+
                     {/* Default image preview */}
                     {defaultImagePreview && (
                       <Box
-                        position="relative"
+                        position='relative'
                         width={200}
                         height={200}
                         borderRadius={1}
@@ -891,7 +887,7 @@ export default function EditProductModal({ open, onClose, product }: EditProduct
                         </IconButton>
                         <Typography
                           variant='caption'
-                          position="absolute"
+                          position='absolute'
                           bottom={0}
                           left={0}
                           right={0}
@@ -913,19 +909,19 @@ export default function EditProductModal({ open, onClose, product }: EditProduct
                     <Typography variant='subtitle1' mb={1} fontWeight='bold'>
                       Hình ảnh bổ sung (Tùy chọn, Tối đa 8)
                     </Typography>
-                    
-                    <Button 
-                      component='label' 
-                      variant='contained' 
-                      startIcon={<CloudUploadIcon />} 
-                      color={validationErrors.additionalImages ? 'error' : 'primary'} 
-                      fullWidth 
+
+                    <Button
+                      component='label'
+                      variant='contained'
+                      startIcon={<CloudUploadIcon />}
+                      color={validationErrors.additionalImages ? 'error' : 'primary'}
+                      fullWidth
                       style={{ paddingTop: 12, paddingBottom: 12, marginBottom: 16 }}
                     >
                       Tải lên hình ảnh bổ sung
                       <VisuallyHiddenInput type='file' multiple accept='image/*' onChange={handleAdditionalImagesChange} />
                     </Button>
-                    
+
                     {validationErrors.additionalImages && (
                       <FormHelperText error style={{ marginBottom: 16 }}>
                         {validationErrors.additionalImages}
