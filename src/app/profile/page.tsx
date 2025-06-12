@@ -19,23 +19,34 @@ function ProfileContent() {
       </Typography>
 
       <Grid container spacing={4}>
-        {/* Left Column - Profile Info */}
+        {/* Left Column - Profile Info and Change Password */}
         <Grid size={{ xs: 12, lg: 3 }}>
-          {profileLoading ? (
-            <ProfileInformationSkeleton />
-          ) : (
-            <ProfileInformation profileData={profileData!} onUpdateProfile={updateProfile} onUpdateAvatar={updateAvatar} isUpdatingProfile={isUpdatingProfile} isUpdatingAvatar={isUpdatingAvatar} />
-          )}
+          <Grid container spacing={4}>
+            {/* Profile Information */}
+            <Grid size={{ xs: 12 }}>
+              {profileLoading ? (
+                <ProfileInformationSkeleton />
+              ) : (
+                <ProfileInformation
+                  profileData={profileData!}
+                  onUpdateProfile={updateProfile}
+                  onUpdateAvatar={updateAvatar}
+                  isUpdatingProfile={isUpdatingProfile}
+                  isUpdatingAvatar={isUpdatingAvatar}
+                />
+              )}
+            </Grid>
+          </Grid>
         </Grid>
 
         {/* Right Column - Addresses and Orders */}
         <Grid size={{ xs: 12, lg: 9 }}>
           <Grid container spacing={4}>
             {/* Address Section */}
-            <Grid size={12}>{addressLoading ? <AddressSkeleton /> : <AddressSection addressData={addressData} addressRefetch={addressRefetch} />}</Grid>
+            <Grid size={{ xs: 12 }}>{addressLoading ? <AddressSkeleton /> : <AddressSection addressData={addressData} addressRefetch={addressRefetch} />}</Grid>
 
             {/* Order History with spacing */}
-            <Grid size={12}>{orderLoading ? <OrderHistorySkeleton /> : <OrderHistory orderData={orderData} orderRefetch={orderRefetch} />}</Grid>
+            <Grid size={{ xs: 12 }}>{orderLoading ? <OrderHistorySkeleton /> : <OrderHistory orderData={orderData} orderRefetch={orderRefetch} />}</Grid>
           </Grid>
         </Grid>
       </Grid>

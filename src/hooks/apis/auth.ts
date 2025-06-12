@@ -1,5 +1,5 @@
-import type { LoginData, ResponseLoginOtp, ResponseRequestLoginOtp, SignUpData, VerifyForgotPasswordOtpData, VerifyLoginOtpData } from "@/services/apis/auth";
-import { fetchLogin, fetchRequestForgotPasswordOtp, fetchRequestLoginOtp, fetchSignUp, fetchVerifyForgotPasswordOtp, fetchVerifyLoginOtp } from "@/services/apis/auth";
+import type { ChangePasswordData, LoginData, ResponseLoginOtp, ResponseRequestLoginOtp, SignUpData, VerifyForgotPasswordOtpData, VerifyLoginOtpData } from "@/services/apis/auth";
+import { fetchChangePassword, fetchLogin, fetchRequestForgotPasswordOtp, fetchRequestLoginOtp, fetchSignUp, fetchVerifyForgotPasswordOtp, fetchVerifyLoginOtp } from "@/services/apis/auth";
 import { BaseResponse } from '@/types/base-response';
 import { useMutation } from '@tanstack/react-query';
 
@@ -59,6 +59,16 @@ export const useFetchVerifyForgotPasswordOtp = (options?: {
 }) => {
   return useMutation({
     mutationFn: (data: VerifyForgotPasswordOtpData) => fetchVerifyForgotPasswordOtp(data),
+    ...options,
+  });
+}
+
+export const useFetchChangePassword = (options?: {
+  onSuccess: (data: BaseResponse<ResponseLoginOtp>) => void;
+  onError: (error: BaseResponse<null>) => void;
+}) => {
+  return useMutation({
+    mutationFn: (data: ChangePasswordData) => fetchChangePassword(data),
     ...options,
   });
 } 

@@ -39,6 +39,11 @@ export type ResponseRequestLoginOtp = {
   otpSecret: string;
 }
 
+export type ChangePasswordData = {
+  oldPassword: string;
+  newPassword: string;
+}
+
 export const fetchSignUp = async (signUpData: SignUpData): Promise<BaseResponse<ResponseLoginOtp>> => {
   const { data } = await API.post(Endpoint().auth.signUp, signUpData);
   return data;
@@ -66,6 +71,11 @@ export const fetchRequestForgotPasswordOtp = async (requestData: RequestOtpData)
 
 export const fetchVerifyForgotPasswordOtp = async (verifyData: VerifyForgotPasswordOtpData): Promise<BaseResponse<ResponseLoginOtp>> => {
   const { data } = await API.post(Endpoint().auth.verifyForgotPasswordOtp, verifyData);
+  return data;
+};
+
+export const fetchChangePassword = async (changePasswordData: ChangePasswordData): Promise<BaseResponse<ResponseLoginOtp>> => {
+  const { data } = await API.post(Endpoint().auth.changePassword, changePasswordData);
   return data;
 };
 

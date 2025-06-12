@@ -12,6 +12,7 @@ export const Endpoint = () => {
       requestForgotPasswordOtp: `${BASE_URL}/auth/forgot-password/request-otp`,
       verifyForgotPasswordOtp: `${BASE_URL}/auth/forgot-password/verify-otp`,
       checkAdmin: `${BASE_URL}/auth/check-admin`,
+      changePassword: `${BASE_URL}/auth/change-password`
     },
 
     profile: {
