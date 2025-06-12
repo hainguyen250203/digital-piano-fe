@@ -64,7 +64,7 @@ export const fetchRequestForgotPasswordOtp = async (requestData: RequestOtpData)
   return data;
 };
 
-export const fetchVerifyForgotPasswordOtp = async (verifyData: VerifyForgotPasswordOtpData) => {
+export const fetchVerifyForgotPasswordOtp = async (verifyData: VerifyForgotPasswordOtpData): Promise<BaseResponse<ResponseLoginOtp>> => {
   const { data } = await API.post(Endpoint().auth.verifyForgotPasswordOtp, verifyData);
   return data;
 };
