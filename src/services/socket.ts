@@ -29,15 +29,24 @@ class SocketService {
     if (!this.socket || !this.socket.connected) {
       // Extract the base URL without the API path
       const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3002';
-      const baseUrl = apiUrl.split('/api')[0];
 
-      console.log('Environment details:', {
+      // Properly parse and construct the WebSocket URL
+      let baseUrl;
+      try {
+        const url = new URL(apiUrl);
+        // Only use the host for WebSocket connection
+        baseUrl = `${url.protocol === 'https:' ? 'wss' : 'ws'}://${url.host}`;
+      } catch (error) {
+        console.error('Error parsing API URL:', error);
+        baseUrl = 'ws://localhost:3002';
+      }
+
+      console.log('Socket connection details:', {
+        originalApiUrl: apiUrl,
+        parsedBaseUrl: baseUrl,
         NODE_ENV: process.env.NODE_ENV,
         NODE_ENV_type: typeof process.env.NODE_ENV,
         NODE_ENV_exact: `"${process.env.NODE_ENV}"`,
-        NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-        apiUrl,
-        baseUrl,
         isProduction: process.env.NODE_ENV === 'production',
         isDevelopment: process.env.NODE_ENV === 'development'
       });
