@@ -28,27 +28,26 @@ export const useFetchAddToCart = (options?: {
       const existingItemIndex = updatedItems.findIndex(item => item.product.id === data.data.product.id)
 
       if (existingItemIndex !== -1) {
-        updatedItems[existingItemIndex] = {
-          ...updatedItems[existingItemIndex],
-          quantity: updatedItems[existingItemIndex].quantity + data.data.quantity
-        }
+        updatedItems[existingItemIndex] = data.data
       } else {
         updatedItems.push(data.data)
       }
+
+      const newTotalQuantity = updatedItems.reduce((total, item) => total + item.quantity, 0)
 
       queryClient.setQueryData([QueryKey.GET_CART], {
         ...currentCart,
         data: {
           ...currentCart.data,
           items: updatedItems,
-          totalQuantity: currentCart.data.totalQuantity + data.data.quantity,
+          totalQuantity: newTotalQuantity,
           totalPrice: currentCart.data.totalPrice + (data.data.product.price * data.data.quantity)
         }
       })
 
       options?.onSuccess?.(data)
     },
-
+    ...options
   })
 }
 
@@ -74,48 +73,30 @@ export const useFetchUpdateCartItem = (options?: {
       return FetchUpdateCartItem(cartItemId, quantity)
     },
     onSuccess: (data: BaseResponse<CartItemType>) => {
-      console.log('Update cart item success - Response data:', data);
-
       queryClient.setQueryData<BaseResponse<ResCartType>>(
         [QueryKey.GET_CART],
         (old) => {
-          console.log('Current cart cache before update:', old);
+          if (!old?.data) return old
 
-          if (!old?.data) {
-            console.log('No existing cart cache found');
-            return old;
-          }
+          const updatedItems = old.data.items.map(item =>
+            item.id === data.data.id ? data.data : item
+          )
 
-          const updatedItems = old.data.items.map(item => {
-            if (item.id === data.data.id) {
-              console.log('Updating quantity for item:', item.id);
-              return {
-                ...item,
-                quantity: data.data.quantity
-              };
-            }
-            return item;
-          });
+          const newTotalQuantity = updatedItems.reduce((total, item) => total + item.quantity, 0)
+          const newTotalPrice = updatedItems.reduce((total, item) => total + (item.product.price * item.quantity), 0)
 
-          const existingItem = old.data.items.find(item => item.id === data.data.id);
-          const totalQuantityDiff = existingItem ? data.data.quantity - existingItem.quantity : 0;
-          const totalPriceDiff = (data.data.product.price * totalQuantityDiff);
-
-          const newCache = {
+          return {
             ...old,
             data: {
               ...old.data,
               items: updatedItems,
-              totalQuantity: old.data.totalQuantity + totalQuantityDiff,
-              totalPrice: old.data.totalPrice + totalPriceDiff
+              totalQuantity: newTotalQuantity,
+              totalPrice: newTotalPrice
             }
-          };
-
-          console.log('Updated cart cache:', newCache);
-          return newCache;
+          }
         }
-      );
-      options?.onSuccess?.(data);
+      )
+      options?.onSuccess?.(data)
     },
     ...options
   })
@@ -132,27 +113,27 @@ export const useFetchDeleteCartItem = (options?: {
       await queryClient.cancelQueries({ queryKey: [QueryKey.GET_CART] })
     },
     onSuccess: async (data, deletedItemId) => {
-      const currentCart = queryClient.getQueryData<BaseResponse<ResCartType>>([QueryKey.GET_CART])
+      queryClient.setQueryData<BaseResponse<ResCartType>>(
+        [QueryKey.GET_CART],
+        (old) => {
+          if (!old?.data) return old
 
-      if (!currentCart?.data) {
-        await queryClient.invalidateQueries({ queryKey: [QueryKey.GET_CART] })
-        return
-      }
+          const updatedItems = old.data.items.filter(item => item.id !== deletedItemId)
 
-      const deletedItem = currentCart.data.items.find(item => item.id === deletedItemId)
-      if (!deletedItem) return
+          const newTotalQuantity = updatedItems.reduce((total, item) => total + item.quantity, 0)
+          const newTotalPrice = updatedItems.reduce((total, item) => total + (item.product.price * item.quantity), 0)
 
-      const updatedItems = currentCart.data.items.filter(item => item.id !== deletedItemId)
-
-      queryClient.setQueryData([QueryKey.GET_CART], {
-        ...currentCart,
-        data: {
-          ...currentCart.data,
-          items: updatedItems,
-          totalQuantity: currentCart.data.totalQuantity - deletedItem.quantity,
-          totalPrice: currentCart.data.totalPrice - (deletedItem.product.price * deletedItem.quantity)
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              items: updatedItems,
+              totalQuantity: newTotalQuantity,
+              totalPrice: newTotalPrice
+            }
+          }
         }
-      })
+      )
 
       options?.onSuccess?.(data)
     }

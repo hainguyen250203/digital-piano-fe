@@ -17,8 +17,8 @@ interface UserActionsProps {
 }
 
 /**
- * Component that handles user action icons in the header
- * Shows profile, favorites and cart icons
+ * Component xử lý các biểu tượng hành động người dùng trong header
+ * Hiển thị biểu tượng hồ sơ, yêu thích và giỏ hàng
  */
 export default function UserActions({ isLoggedIn, openLoginPopup, openCartPopup, openFavoritesPopup }: UserActionsProps) {
   const { data: Cart } = useFetchGetCart()
@@ -27,10 +27,10 @@ export default function UserActions({ isLoggedIn, openLoginPopup, openCartPopup,
   return (
     <Box sx={{ display: 'flex', alignItems: 'center' }}>
       {isLoggedIn ? (
-        // Logged in state - show all icons
+        // Trạng thái đã đăng nhập - hiển thị tất cả các biểu tượng
         <>
           <NotificationMenu />
-          <Tooltip title='Favorites'>
+          <Tooltip title='Danh sách yêu thích'>
             <IconButton color='inherit' sx={{ ml: 1 }} onClick={openFavoritesPopup}>
               <Badge badgeContent={Favorite?.data?.length || 0} color='primary' showZero>
                 <FavoriteIcon />
@@ -38,7 +38,7 @@ export default function UserActions({ isLoggedIn, openLoginPopup, openCartPopup,
             </IconButton>
           </Tooltip>
 
-          <Tooltip title='Shopping Cart'>
+          <Tooltip title='Giỏ hàng'>
             <IconButton color='inherit' sx={{ ml: 1 }} onClick={openCartPopup}>
               <Badge badgeContent={Cart?.data.totalQuantity || 0} color='primary' showZero>
                 <ShoppingCartIcon />
@@ -49,14 +49,14 @@ export default function UserActions({ isLoggedIn, openLoginPopup, openCartPopup,
           <ClientProfileMenu />
         </>
       ) : (
-        // Not logged in state - show only account icon and wishlist icon (without data)
+        // Trạng thái chưa đăng nhập - chỉ hiển thị biểu tượng tài khoản và yêu thích (không có dữ liệu)
         <>
           <Tooltip title='Đăng nhập để xem danh sách yêu thích'>
             <IconButton color='inherit' sx={{ ml: 1 }} onClick={openLoginPopup}>
               <FavoriteIcon />
             </IconButton>
           </Tooltip>
-          <Tooltip title='Login / Sign Up'>
+          <Tooltip title='Đăng nhập / Đăng ký'>
             <IconButton color='inherit' sx={{ ml: 1 }} onClick={openLoginPopup}>
               <PersonIcon />
             </IconButton>
