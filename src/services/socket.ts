@@ -5,7 +5,7 @@ class SocketService {
   private socket: Socket | null = null;
   private connectionTimeoutId: NodeJS.Timeout | null = null;
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): SocketService {
     if (!SocketService.instance) {
@@ -30,13 +30,24 @@ class SocketService {
       // Extract the base URL without the API path
       const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3002';
       const baseUrl = apiUrl.split('/api')[0];
-      
+
+      console.log('Environment details:', {
+        NODE_ENV: process.env.NODE_ENV,
+        NODE_ENV_type: typeof process.env.NODE_ENV,
+        NODE_ENV_exact: `"${process.env.NODE_ENV}"`,
+        NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+        apiUrl,
+        baseUrl,
+        isProduction: process.env.NODE_ENV === 'production',
+        isDevelopment: process.env.NODE_ENV === 'development'
+      });
+
       // Clean up any existing socket before creating a new one
       if (this.socket) {
         this.socket.disconnect();
         this.socket = null;
       }
-      
+
       try {
         // Connect to the default namespace
         this.socket = io(baseUrl, {
@@ -49,15 +60,71 @@ class SocketService {
           transports: ['websocket', 'polling'],
         });
 
-        this.socket.on('connect_error', () => {
-          // Set up a retry after 5 seconds
-          this.connectionTimeoutId = setTimeout(() => {
-            this.connectionTimeoutId = null;
-            if (this.socket) {
-              this.socket.connect();
-            }
-          }, 5000);
+        // Log connection lifecycle events
+        this.socket.on('connect', () => {
+          console.log('Socket connected successfully:', {
+            id: this.socket?.id,
+            baseUrl,
+            transport: this.socket?.io.engine.transport.name
+          });
         });
+
+        this.socket.on('disconnect', (reason) => {
+          console.log('Socket disconnected:', {
+            reason,
+            baseUrl,
+            wasConnected: this.socket?.connected
+          });
+        });
+
+        this.socket.on('connect_error', (error) => {
+          console.error('Socket connection error:', {
+            error,
+            baseUrl,
+            token: token ? 'present' : 'missing',
+            transport: this.socket?.io.engine.transport.name,
+            readyState: this.socket?.io.engine.readyState
+          });
+        });
+
+        this.socket.on('reconnect_attempt', (attemptNumber) => {
+          console.log('Socket reconnection attempt:', {
+            attemptNumber,
+            baseUrl,
+            transport: this.socket?.io.engine.transport.name
+          });
+        });
+
+        this.socket.on('reconnect', (attemptNumber) => {
+          console.log('Socket reconnected successfully:', {
+            attemptNumber,
+            baseUrl,
+            transport: this.socket?.io.engine.transport.name
+          });
+        });
+
+        this.socket.on('reconnect_error', (error) => {
+          console.error('Socket reconnection error:', {
+            error,
+            baseUrl,
+            transport: this.socket?.io.engine.transport.name
+          });
+        });
+
+        this.socket.on('reconnect_failed', () => {
+          console.error('Socket reconnection failed after all attempts:', {
+            baseUrl,
+            transport: this.socket?.io.engine.transport.name
+          });
+        });
+
+        // Set up a retry after 5 seconds
+        this.connectionTimeoutId = setTimeout(() => {
+          this.connectionTimeoutId = null;
+          if (this.socket) {
+            this.socket.connect();
+          }
+        }, 5000);
       } catch {
         return null;
       }
@@ -70,7 +137,7 @@ class SocketService {
       clearTimeout(this.connectionTimeoutId);
       this.connectionTimeoutId = null;
     }
-    
+
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;

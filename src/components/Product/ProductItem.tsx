@@ -157,9 +157,6 @@ export default function ProductItem({ product }: ProductItemProps) {
 
   // Cart mutation
   const { mutate: addToCartMutation, isPending: addToCartPending } = useFetchAddToCart({
-    onSuccess: () => {
-      toast.success('Đã thêm vào giỏ hàng', { position: 'top-center' })
-    },
     onError: error => {
       if (error.errorCode === 4) {
         toast.error('Vui lòng đăng nhập để sử dụng tính năng này', { position: 'top-center' })
@@ -171,9 +168,6 @@ export default function ProductItem({ product }: ProductItemProps) {
 
   // Wishlist mutation
   const { mutate: addToWishlistMutation, isPending: addToWishlistPending } = useAddToWishlist({
-    onSuccess: () => {
-      toast.success('Đã thêm vào danh sách yêu thích', { position: 'top-center' })
-    },
     onError: error => {
       if (error.errorCode === 4) {
         toast.error('Vui lòng đăng nhập để sử dụng tính năng này', { position: 'top-center' })

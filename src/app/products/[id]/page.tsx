@@ -39,18 +39,12 @@ function ProductDetailContent({ productId }: { productId: string }) {
 
     if (isProductInWishlist) {
       removeFromWishlist(productId, {
-        onSuccess: () => {
-          toast.success('Đã xóa khỏi danh sách yêu thích')
-        },
         onError: () => {
           toast.error('Không thể xóa khỏi danh sách yêu thích')
         }
       })
     } else {
       addToWishlist(productId, {
-        onSuccess: () => {
-          toast.success('Đã thêm vào danh sách yêu thích')
-        },
         onError: () => {
           toast.error('Không thể thêm vào danh sách yêu thích')
         }

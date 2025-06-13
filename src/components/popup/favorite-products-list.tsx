@@ -24,9 +24,6 @@ export default function FavoriteProductsList({ favoriteProducts, onClose }: Favo
 
   // Cart mutation
   const { mutate: addToCartMutation } = useFetchAddToCart({
-    onSuccess: () => {
-      toast.success('Đã thêm vào giỏ hàng', { position: 'top-center' })
-    },
     onError: error => {
       if (error.errorCode === 4) {
         toast.error('Vui lòng đăng nhập để sử dụng tính năng này', { position: 'top-center' })

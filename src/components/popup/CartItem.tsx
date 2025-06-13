@@ -25,18 +25,12 @@ const CartItem = ({ item }: CartItemProps) => {
 
   // Cart mutations
   const { mutate: updateCartItemMutation } = useFetchUpdateCartItem({
-    onSuccess: () => {
-      toast.success('Đã cập nhật giỏ hàng', { position: 'top-center' })
-    },
     onError: error => {
       toast.error(error.message || 'Lỗi khi cập nhật giỏ hàng', { position: 'top-center' })
     }
   })
 
   const { mutate: removeCartItemMutation } = useFetchDeleteCartItem({
-    onSuccess: () => {
-      toast.success('Đã xóa sản phẩm khỏi giỏ hàng', { position: 'top-center' })
-    },
     onError: error => {
       toast.error(error.message || 'Lỗi khi xóa sản phẩm khỏi giỏ hàng', { position: 'top-center' })
     }
