@@ -1,12 +1,14 @@
 import { QueryKey } from '@/models/QueryKey';
 import { WishlistItemData, fetchAddToWishlist, fetchDeleteFromWishlist, fetchDeleteFromWishlistByProduct, fetchWishlistList } from '@/services/apis/wishlist';
 import { BaseResponse } from '@/types/base-response';
+import { isAuthenticated } from '@/utils/auth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useFetchWishlist = () => {
   return useQuery({
     queryKey: [QueryKey.WISHLIST_LIST],
     queryFn: () => fetchWishlistList(),
+    enabled: isAuthenticated(),
   });
 };
 

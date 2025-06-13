@@ -1,7 +1,8 @@
 'use client'
 
 import { ResponseOrder } from '@/types/order.type'
-import { calculateSubtotal, formatNumber } from '@/utils/order'
+import { formatCurrency } from '@/utils/format'
+import { calculateSubtotal } from '@/utils/order'
 import ReceiptIcon from '@mui/icons-material/Receipt'
 import { Box, Divider, Paper, Stack, Typography } from '@mui/material'
 import { memo, useMemo } from 'react'
@@ -34,13 +35,13 @@ export default memo(function OrderSummary({ orderData }: OrderSummaryProps) {
       <Stack spacing={1}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Typography variant='body2'>Tạm tính:</Typography>
-          <Typography variant='body2'>{formatNumber(subtotal)} VNĐ</Typography>
+          <Typography variant='body2'>{formatCurrency(subtotal)}</Typography>
         </Box>
 
         {orderData.shippingFee !== undefined && (
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Typography variant='body2'>Phí vận chuyển:</Typography>
-            <Typography variant='body2'>{formatNumber(orderData.shippingFee)} VNĐ</Typography>
+            <Typography variant='body2'>{formatCurrency(orderData.shippingFee)}</Typography>
           </Box>
         )}
 
@@ -48,7 +49,7 @@ export default memo(function OrderSummary({ orderData }: OrderSummaryProps) {
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Typography variant='body2'>Giảm giá:</Typography>
             <Typography variant='body2' color='error.main'>
-              - {formatNumber(orderData.discountAmount)} VNĐ
+              - {formatCurrency(orderData.discountAmount)}
             </Typography>
           </Box>
         )}
@@ -60,7 +61,7 @@ export default memo(function OrderSummary({ orderData }: OrderSummaryProps) {
             Tổng cộng:
           </Typography>
           <Typography variant='subtitle2' fontWeight={600} color='primary.main'>
-            {formatNumber(orderData.orderTotal)} VNĐ
+            {formatCurrency(orderData.orderTotal)}
           </Typography>
         </Box>
       </Stack>

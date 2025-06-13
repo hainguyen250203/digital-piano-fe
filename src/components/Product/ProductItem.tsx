@@ -3,6 +3,7 @@
 import { useFetchAddToCart } from '@/hooks/apis/cart'
 import { useAddToWishlist, useFetchWishlist } from '@/hooks/apis/wishlist'
 import { ProductListData } from '@/types/product.type'
+import { isAuthenticated } from '@/utils/auth'
 import { formatCurrency } from '@/utils/format'
 import { AddShoppingCart, Favorite } from '@mui/icons-material'
 import { alpha, Box, Card, CardContent, Chip, CircularProgress, IconButton, styled, Tooltip, Typography } from '@mui/material'
@@ -149,18 +150,17 @@ const CategoryChip = styled(Chip)(({ theme }) => ({
 }))
 
 export default function ProductItem({ product }: ProductItemProps) {
-  // Fetch wishlist data to check if product is in wishlist
+  const isLoggedIn = isAuthenticated()
+  // Only fetch wishlist data if user is logged in
   const { data: wishlistData } = useFetchWishlist()
-  const isInWishlist = wishlistData?.data?.some(item => item.product.id === product.id) || false
+  const isInWishlist = isLoggedIn ? wishlistData?.data?.some(item => item.product.id === product.id) || false : false
 
   // Cart mutation
   const { mutate: addToCartMutation, isPending: addToCartPending } = useFetchAddToCart({
-    onSuccess: data => {
-      console.log('Add to cart success - Full response:', data)
+    onSuccess: () => {
       toast.success('Đã thêm vào giỏ hàng', { position: 'top-center' })
     },
     onError: error => {
-      console.log('Add to cart error:', error)
       if (error.errorCode === 4) {
         toast.error('Vui lòng đăng nhập để sử dụng tính năng này', { position: 'top-center' })
       } else {
@@ -198,6 +198,10 @@ export default function ProductItem({ product }: ProductItemProps) {
   }
 
   const handleAddToWishlist = () => {
+    if (!isLoggedIn) {
+      toast.error('Vui lòng đăng nhập để sử dụng tính năng này', { position: 'top-center' })
+      return
+    }
     addToWishlistMutation(product.id)
   }
 
@@ -269,7 +273,7 @@ export default function ProductItem({ product }: ProductItemProps) {
                 </ActionIconButton>
               </span>
             </Tooltip>
-            <Tooltip title={isInWishlist ? 'Đã thêm vào yêu thích' : 'Thêm vào yêu thích'}>
+            <Tooltip title={!isLoggedIn ? 'Đăng nhập để thêm vào yêu thích' : isInWishlist ? 'Đã thêm vào yêu thích' : 'Thêm vào yêu thích'}>
               <span>
                 <ActionIconButton
                   aria-label='add to wishlist'
@@ -280,7 +284,7 @@ export default function ProductItem({ product }: ProductItemProps) {
                       opacity: isInWishlist ? 1 : 0.5
                     }
                   }}
-                  disabled={addToWishlistPending || isInWishlist}
+                  disabled={addToWishlistPending || isInWishlist || !isLoggedIn}
                   onClick={handleAddToWishlist}
                 >
                   {addToWishlistPending ? <CircularProgress size={20} /> : <Favorite fontSize='small' />}

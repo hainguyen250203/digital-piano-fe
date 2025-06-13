@@ -1,6 +1,6 @@
 import { ResponseOrder } from '@/types/order.type'
-import { formatDateTimeFromAny } from '@/utils/format'
-import { formatNumber, formatPaymentMethod, getPaymentStatusColor, getPaymentStatusText, getStatusColor, getStatusIcon, getStatusText } from '@/utils/order'
+import { formatCurrency, formatDateTimeFromAny } from '@/utils/format'
+import { formatPaymentMethod, getPaymentStatusColor, getPaymentStatusText, getStatusColor, getStatusIcon, getStatusText } from '@/utils/order'
 import { Chip, TableCell, TableRow, Typography } from '@mui/material'
 import OrderActions from './OrderActions'
 
@@ -21,9 +21,7 @@ export default function OrderRow({ order, isUserCancelOrderLoading, onOpenDetail
         </Typography>
       </TableCell>
       <TableCell>
-        <Typography variant='body2'>
-          {formatDateTimeFromAny(order.createdAt)}
-        </Typography>
+        <Typography variant='body2'>{formatDateTimeFromAny(order.createdAt)}</Typography>
       </TableCell>
       <TableCell>
         <Chip icon={getStatusIcon(order.orderStatus)} label={getStatusText(order.orderStatus)} size='small' color={getStatusColor(order.orderStatus)} />
@@ -32,13 +30,11 @@ export default function OrderRow({ order, isUserCancelOrderLoading, onOpenDetail
         <Chip label={getPaymentStatusText(order.paymentStatus)} size='small' color={getPaymentStatusColor(order.paymentStatus)} />
       </TableCell>
       <TableCell>
-        <Typography variant='body2'>
-          {formatPaymentMethod(order.paymentMethod)}
-        </Typography>
+        <Typography variant='body2'>{formatPaymentMethod(order.paymentMethod)}</Typography>
       </TableCell>
       <TableCell>
-        <Typography variant='subtitle2' fontWeight={600} color="primary.main">
-          {formatNumber(order.orderTotal)} VNĐ
+        <Typography variant='subtitle2' fontWeight={600} color='primary.main'>
+          {formatCurrency(order.orderTotal)}
         </Typography>
       </TableCell>
       <TableCell>

@@ -49,12 +49,19 @@ export default function UserActions({ isLoggedIn, openLoginPopup, openCartPopup,
           <ClientProfileMenu />
         </>
       ) : (
-        // Not logged in state - show only account icon
-        <Tooltip title='Login / Sign Up'>
-          <IconButton color='inherit' sx={{ ml: 1 }} onClick={openLoginPopup}>
-            <PersonIcon />
-          </IconButton>
-        </Tooltip>
+        // Not logged in state - show only account icon and wishlist icon (without data)
+        <>
+          <Tooltip title='Đăng nhập để xem danh sách yêu thích'>
+            <IconButton color='inherit' sx={{ ml: 1 }} onClick={openLoginPopup}>
+              <FavoriteIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title='Login / Sign Up'>
+            <IconButton color='inherit' sx={{ ml: 1 }} onClick={openLoginPopup}>
+              <PersonIcon />
+            </IconButton>
+          </Tooltip>
+        </>
       )}
     </Box>
   )

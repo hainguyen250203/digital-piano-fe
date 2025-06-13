@@ -5,7 +5,7 @@ import ReviewItem from '@/components/popup/OrderDetailPopup/ReviewItem'
 import { useFetchCreateReview, useFetchDeleteReview, useFetchUpdateReview } from '@/hooks/apis/review'
 import { BaseResponse } from '@/types/base-response'
 import { OrderItem, OrderStatus, ProductReview, ResponseOrder } from '@/types/order.type'
-import { formatNumber } from '@/utils/order'
+import { formatCurrency } from '@/utils/format'
 import RateReviewIcon from '@mui/icons-material/RateReview'
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag'
 import { Box, Button, Divider, Paper, Stack, Typography } from '@mui/material'
@@ -204,11 +204,11 @@ export default memo(function OrderItems({ orderData, refreshOrder }: OrderItemsP
                         Số lượng: {item.quantity}
                       </Typography>
                       <Typography variant='body2' color='text.secondary'>
-                        Đơn giá: {formatNumber(item.price)} VNĐ
+                        Đơn giá: {formatCurrency(item.price)}
                       </Typography>
                     </Box>
                     <Typography variant='subtitle2' color='primary.main'>
-                      Thành tiền: {formatNumber(item.price * item.quantity)} VNĐ
+                      Thành tiền: {formatCurrency(item.price * item.quantity)}
                     </Typography>
                   </Box>
                 </Box>

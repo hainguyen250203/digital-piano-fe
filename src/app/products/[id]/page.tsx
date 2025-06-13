@@ -9,6 +9,7 @@ import ProductReviews from '@/components/Product/ProductReviews'
 import { useFetchAddToCart } from '@/hooks/apis/cart'
 import { useFetchProductDetail, useFetchProductRelated } from '@/hooks/apis/product'
 import { useAddToWishlist, useDeleteFromWishlistByProduct, useFetchWishlist } from '@/hooks/apis/wishlist'
+import { isAuthenticated } from '@/utils/auth'
 import { NavigateNext, Widgets } from '@mui/icons-material'
 import { Box, Breadcrumbs, Grid, Link, Typography } from '@mui/material'
 import { useParams } from 'next/navigation'
@@ -16,6 +17,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 
 function ProductDetailContent({ productId }: { productId: string }) {
+  const isLoggedIn = isAuthenticated()
   // Fetch product data
   const { data: productData, isLoading, error } = useFetchProductDetail(productId)
   const { data: relatedProducts } = useFetchProductRelated(productId)
@@ -27,9 +29,14 @@ function ProductDetailContent({ productId }: { productId: string }) {
   const { mutate: removeFromWishlist } = useDeleteFromWishlistByProduct()
 
   const product = productData?.data
-  const isProductInWishlist = wishlistData?.data?.some(item => item.productId === productId) || false
+  const isProductInWishlist = isLoggedIn ? wishlistData?.data?.some(item => item.productId === productId) || false : false
 
   const handleAddToFavorites = () => {
+    if (!isLoggedIn) {
+      toast.error('Vui lòng đăng nhập để sử dụng tính năng này')
+      return
+    }
+
     if (isProductInWishlist) {
       removeFromWishlist(productId, {
         onSuccess: () => {

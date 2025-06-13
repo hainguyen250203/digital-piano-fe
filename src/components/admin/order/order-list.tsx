@@ -5,8 +5,8 @@ import ViewOrderModal from '@/components/admin/order/view-order-modal'
 import { useFetchAdminCancelOrder, useFetchGetOrderDetail, useFetchUpdateOrderStatus } from '@/hooks/apis/order'
 import { QueryKey } from '@/models/QueryKey'
 import { OrderStatus, PaymentMethod, PaymentStatus, ResponseOrder } from '@/types/order.type'
-import { formatDateTimeFromAny } from '@/utils/format'
-import { formatNumber, formatPaymentMethod, getPaymentStatusColor, getPaymentStatusText, getStatusColor, getStatusIcon, getStatusText } from '@/utils/order'
+import { formatCurrency, formatDateTimeFromAny } from '@/utils/format'
+import { formatPaymentMethod, getPaymentStatusColor, getPaymentStatusText, getStatusColor, getStatusIcon, getStatusText } from '@/utils/order'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import SearchIcon from '@mui/icons-material/Search'
@@ -295,7 +295,7 @@ export default function OrderList({ orders }: { orders: ResponseOrder[] }) {
                       <Chip label={getPaymentStatusText(order.paymentStatus)} size='small' color={getPaymentStatusColor(order.paymentStatus)} />
                     </TableCell>
                     <TableCell>{formatPaymentMethod(order.paymentMethod)}</TableCell>
-                    <TableCell>{formatNumber(order.orderTotal)} VNĐ</TableCell>
+                    <TableCell>{formatCurrency(order.orderTotal)}</TableCell>
                     <TableCell>
                       <Box display='flex' gap={1}>
                         <Tooltip title='Xem chi tiết'>

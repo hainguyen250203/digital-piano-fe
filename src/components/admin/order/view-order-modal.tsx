@@ -2,19 +2,8 @@
 
 import { useFetchGetOrderDetail } from '@/hooks/apis/order'
 import { OrderStatus } from '@/types/order.type'
-import { formatDateTimeFromAny } from '@/utils/format'
-import {
-  calculateSubtotal,
-  formatNumber,
-  formatPaymentMethod,
-  getOrderStep,
-  getPaymentStatusColor,
-  getPaymentStatusText,
-  getStatusColor,
-  getStatusIcon,
-  getStatusText,
-  getStepIcon
-} from '@/utils/order'
+import { formatCurrency, formatDateTimeFromAny } from '@/utils/format'
+import { calculateSubtotal, formatPaymentMethod, getOrderStep, getPaymentStatusColor, getPaymentStatusText, getStatusColor, getStatusIcon, getStatusText, getStepIcon } from '@/utils/order'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CancelIcon from '@mui/icons-material/Cancel'
 import CloseIcon from '@mui/icons-material/Close'
@@ -319,11 +308,11 @@ export default function ViewOrderModal({ open, onClose, orderId }: ViewOrderModa
                           Số lượng: {item.quantity}
                         </Typography>
                         <Typography variant='body2' fontWeight={600}>
-                          {formatNumber(item.price)} VNĐ
+                          {formatCurrency(item.price)}
                         </Typography>
                       </Box>
                       <Typography variant='body2' fontWeight={600} sx={{ mt: 1, textAlign: 'right' }}>
-                        Thành tiền: {formatNumber(item.price * item.quantity)} VNĐ
+                        Thành tiền: {formatCurrency(item.price * item.quantity)}
                       </Typography>
                     </Box>
                   </Box>
@@ -357,13 +346,13 @@ export default function ViewOrderModal({ open, onClose, orderId }: ViewOrderModa
             <Stack spacing={1}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant='body2'>Tạm tính:</Typography>
-                <Typography variant='body2'>{formatNumber(subtotal)} VNĐ</Typography>
+                <Typography variant='body2'>{formatCurrency(subtotal)}</Typography>
               </Box>
 
               {orderData.shippingFee !== undefined && (
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant='body2'>Phí vận chuyển:</Typography>
-                  <Typography variant='body2'>{formatNumber(orderData.shippingFee)} VNĐ</Typography>
+                  <Typography variant='body2'>{formatCurrency(orderData.shippingFee)}</Typography>
                 </Box>
               )}
 
@@ -371,7 +360,7 @@ export default function ViewOrderModal({ open, onClose, orderId }: ViewOrderModa
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant='body2'>Giảm giá:</Typography>
                   <Typography variant='body2' color='error.main'>
-                    - {formatNumber(orderData.discountAmount)} VNĐ
+                    - {formatCurrency(orderData.discountAmount)}
                   </Typography>
                 </Box>
               )}
@@ -383,7 +372,7 @@ export default function ViewOrderModal({ open, onClose, orderId }: ViewOrderModa
                   Tổng cộng:
                 </Typography>
                 <Typography variant='subtitle2' fontWeight={600} color='primary.main'>
-                  {formatNumber(orderData.orderTotal)} VNĐ
+                  {formatCurrency(orderData.orderTotal)}
                 </Typography>
               </Box>
             </Stack>
