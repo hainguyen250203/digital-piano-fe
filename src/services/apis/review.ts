@@ -21,3 +21,17 @@ export const fetchDeleteReview = async (payload: DeleteReviewPayload) => {
   return response.data;
 };
 
+// Admin review APIs
+export const fetchAdminUpdateReview = async (payload: EditReviewPayload): Promise<BaseResponse<ResponeReviewType>> => {
+  const response = await API.put(Endpoint().review.adminUpdate(payload.id), {
+    rating: payload.rating,
+    content: payload.content
+  });
+  return response.data;
+};
+
+export const fetchAdminDeleteReview = async (payload: DeleteReviewPayload) => {
+  const response = await API.delete(Endpoint().review.adminDelete(payload.id));
+  return response.data;
+};
+

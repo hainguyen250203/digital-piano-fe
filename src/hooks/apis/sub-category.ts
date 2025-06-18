@@ -26,11 +26,11 @@ export const useFetchSubCategoryList = () => {
   });
 };
 
-export const useFetchSubCategoryByCategory = (categoryId: string) => {
+export const useFetchSubCategoryByCategory = (categoryId: string, options?: { enabled?: boolean }) => {
   return useQuery<SubCategoryListResponse, Error>({
     queryKey: [QueryKey.SUB_CATEGORY_LIST, categoryId],
     queryFn: () => fetchSubCategoryByCategory(categoryId),
-    enabled: !!categoryId
+    enabled: (options?.enabled !== false) && !!categoryId
   });
 };
 

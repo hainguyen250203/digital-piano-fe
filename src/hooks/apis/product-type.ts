@@ -33,11 +33,11 @@ export const useFetchProductTypeList = () => {
   });
 };
 
-export const useFetchProductTypeBySubCategory = (subCategoryId: string) => {
+export const useFetchProductTypeBySubCategory = (subCategoryId: string, options?: { enabled?: boolean }) => {
   return useQuery<ProductTypeListResponse, Error>({
     queryKey: [QueryKey.PRODUCT_TYPE_LIST, subCategoryId],
     queryFn: () => fetchProductTypeBySubCategory(subCategoryId),
-    enabled: !!subCategoryId,
+    enabled: (options?.enabled !== false) && !!subCategoryId,
   });
 };
 

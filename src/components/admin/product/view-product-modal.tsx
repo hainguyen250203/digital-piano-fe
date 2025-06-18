@@ -4,7 +4,8 @@ import CloseIcon from '@mui/icons-material/Close'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import { Box, Button, Chip, CircularProgress, Divider, Fade, Grid, IconButton, Modal, Paper, Skeleton, Tooltip, Typography } from '@mui/material'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import ProductReviewsList from './product-reviews-list'
 
 export interface ViewProductModalProps {
   open: boolean
@@ -12,47 +13,63 @@ export interface ViewProductModalProps {
   product: ProductDetailData | null
 }
 
-export default function ViewProductModal({ open, onClose, product }: ViewProductModalProps) {
+export default memo(function ViewProductModal({ open, onClose, product }: ViewProductModalProps) {
   const [description, setDescription] = useState<Array<{ type: string; content: string | string[] | { src: string; alt: string } }>>([])
   const [existingImages, setExistingImages] = useState<{ id: string; url: string }[]>([])
   const [defaultImagePreview, setDefaultImagePreview] = useState<string>('')
   const [selectedImage, setSelectedImage] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
+
+  // Memoize expensive calculations
+  const memoizedDescription = useMemo(() => {
+    if (!product) return []
+    return typeof product.description === 'string' ? JSON.parse(product.description) : product.description || []
+  }, [product?.description])
+
+  const memoizedImages = useMemo(() => {
+    return product?.images || []
+  }, [product?.images])
+
+  const memoizedDefaultImage = useMemo(() => {
+    return product?.defaultImage?.url || (product?.images && product.images.length > 0 ? product.images[0].url : '')
+  }, [product?.defaultImage?.url, product?.images])
 
   // Initialize data with product details when it changes
   useEffect(() => {
     if (product) {
-      setIsLoading(true)
+      setDescription(memoizedDescription)
+      setExistingImages(memoizedImages)
+      setDefaultImagePreview(memoizedDefaultImage)
+      setSelectedImage(memoizedDefaultImage)
 
-      // Parse description if it's a string
-      const descriptionData = typeof product.description === 'string' ? JSON.parse(product.description) : product.description || []
-
-      setDescription(descriptionData)
-
-      // Handle images
-      if (product.images) {
-        setExistingImages(product.images)
+      // Only show loading on initial load, not when product data updates
+      if (isInitialLoad) {
+        setIsLoading(true)
+        setTimeout(() => {
+          setIsLoading(false)
+          setIsInitialLoad(false)
+        }, 300)
       }
-
-      // Set default image if exists
-      if (product.defaultImage) {
-        setDefaultImagePreview(product.defaultImage.url)
-        setSelectedImage(product.defaultImage.url)
-      } else if (product.images && product.images.length > 0) {
-        setDefaultImagePreview(product.images[0].url)
-        setSelectedImage(product.images[0].url)
-      }
-
-      // Simulate loading of data
-      setTimeout(() => setIsLoading(false), 300)
     }
-  }, [product])
+  }, [product, memoizedDescription, memoizedImages, memoizedDefaultImage, isInitialLoad])
+
+  // Reset initial load state when modal opens/closes
+  useEffect(() => {
+    if (open) {
+      setIsInitialLoad(true)
+      setIsLoading(true)
+    } else {
+      setIsInitialLoad(true)
+      setIsLoading(true)
+    }
+  }, [open])
+
+  const handleImageClick = useCallback((url: string) => {
+    setSelectedImage(url)
+  }, [])
 
   if (!product) return null
-
-  const handleImageClick = (url: string) => {
-    setSelectedImage(url)
-  }
 
   return (
     <Modal open={open} onClose={onClose} aria-labelledby='modal-product-details' closeAfterTransition>
@@ -453,6 +470,9 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
                 </Paper>
               )}
 
+              {/* Product Reviews */}
+              <ProductReviewsList key={`reviews-${product.id}`} product={product} />
+
               <Box display='flex' justifyContent='center' mt={3}>
                 <Button
                   variant='contained'
@@ -481,4 +501,4 @@ export default function ViewProductModal({ open, onClose, product }: ViewProduct
       </Fade>
     </Modal>
   )
-}
+})

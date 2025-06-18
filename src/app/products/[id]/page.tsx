@@ -86,9 +86,47 @@ function ProductDetailContent({ productId }: { productId: string }) {
   }
 
   return (
-    <Box sx={{ maxWidth: '1400px', mx: 'auto', px: { xs: 2, md: 3 } }}>
+    <Box
+      sx={{
+        'maxWidth': '1400px',
+        'mx': 'auto',
+        'px': { xs: 2, md: 3 },
+        '& .MuiPaper-root': {
+          border: { xs: 'none', md: '1px solid' },
+          borderColor: { xs: 'transparent', md: 'divider' },
+          boxShadow: { xs: 'none', md: 1 }
+        },
+        '& .MuiLink-root': {
+          'textDecoration': { xs: 'none', md: 'underline' },
+          '&:hover': {
+            textDecoration: { xs: 'none', md: 'underline' }
+          }
+        },
+        '& .MuiCard-root': {
+          border: { xs: 'none', md: '1px solid' },
+          borderColor: { xs: 'transparent', md: 'divider' },
+          boxShadow: { xs: 'none', md: 1 }
+        },
+        '& .MuiDivider-root': {
+          borderWidth: { xs: 0, md: 1 }
+        }
+      }}
+    >
       {/* Breadcrumbs */}
-      <Breadcrumbs separator={<NavigateNext fontSize='small' />} aria-label='breadcrumb' sx={{ mb: 3, mt: 1 }}>
+      <Breadcrumbs
+        separator={<NavigateNext fontSize='small' />}
+        aria-label='breadcrumb'
+        sx={{
+          'mb': 3,
+          'mt': 1,
+          '& .MuiLink-root': {
+            'textDecoration': 'none',
+            '&:hover': {
+              textDecoration: 'none'
+            }
+          }
+        }}
+      >
         <Link href='/' style={{ textDecoration: 'none', color: 'inherit' }}>
           <Typography color='text.secondary'>Trang Chủ</Typography>
         </Link>
@@ -99,34 +137,77 @@ function ProductDetailContent({ productId }: { productId: string }) {
       </Breadcrumbs>
 
       {/* Product Main Info Section */}
-      <Grid container spacing={{ xs: 3, md: 4 }} sx={{ mb: 5 }}>
+      <Grid container spacing={{ xs: 2, md: 4 }} sx={{ mb: 5 }}>
         {/* Left: Product Gallery */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <ProductGallery images={product.images || []} defaultImage={product.defaultImage} videoUrl={product.videoUrl} productName={product.name} />
+          <Box
+            sx={{
+              '& .MuiPaper-root': {
+                border: { xs: 'none', md: '1px solid' },
+                borderColor: { xs: 'transparent', md: 'divider' }
+              }
+            }}
+          >
+            <ProductGallery images={product.images || []} defaultImage={product.defaultImage} videoUrl={product.videoUrl} productName={product.name} />
+          </Box>
         </Grid>
 
         {/* Right: Product Info */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <ProductInfo
-            product={product}
-            isProductInWishlist={isProductInWishlist}
-            isProductAddingToCart={isAddingToCart}
-            isProductAddingToWishlist={isAddingToWishlist}
-            onAddToCart={handleAddToCart}
-            onAddToWishlist={handleAddToFavorites}
-          />
+          <Box
+            sx={{
+              '& .MuiPaper-root': {
+                border: { xs: 'none', md: '1px solid' },
+                borderColor: { xs: 'transparent', md: 'divider' }
+              }
+            }}
+          >
+            <ProductInfo
+              product={product}
+              isProductInWishlist={isProductInWishlist}
+              isProductAddingToCart={isAddingToCart}
+              isProductAddingToWishlist={isAddingToWishlist}
+              onAddToCart={handleAddToCart}
+              onAddToWishlist={handleAddToFavorites}
+            />
+          </Box>
         </Grid>
       </Grid>
 
       {/* Product Description Section */}
-      <ProductDescription description={product.description || ''} />
+      <Box
+        sx={{
+          '& .MuiPaper-root': {
+            border: { xs: 'none', md: '1px solid' },
+            borderColor: { xs: 'transparent', md: 'divider' }
+          }
+        }}
+      >
+        <ProductDescription description={product.description || ''} />
+      </Box>
 
       {/* Reviews Section */}
-      <ProductReviews reviews={product.reviews || []} />
+      <Box
+        sx={{
+          '& .MuiPaper-root': {
+            border: { xs: 'none', md: '1px solid' },
+            borderColor: { xs: 'transparent', md: 'divider' }
+          }
+        }}
+      >
+        <ProductReviews reviews={product.reviews || []} />
+      </Box>
 
       {/* Related Products Section */}
       {relatedProducts?.length > 0 && (
-        <Box>
+        <Box
+          sx={{
+            '& .MuiCard-root': {
+              border: { xs: 'none', md: '1px solid' },
+              borderColor: { xs: 'transparent', md: 'divider' }
+            }
+          }}
+        >
           <Typography variant='h5' fontWeight={700} color='primary.main' sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             <Widgets /> Sản phẩm liên quan
           </Typography>

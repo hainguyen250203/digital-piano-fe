@@ -77,11 +77,19 @@ export default function EditProductModal({ open, onClose, product }: EditProduct
   const [description, setDescription] = useState<Array<{ type: string; content: string | string[] | { src: string; alt: string } }>>([])
   const [categoryId, setCategoryId] = useState<string>('')
 
-  // HOOKS
+  // HOOKS - Chỉ fetch khi modal mở
   const { data: brandList, isLoading: isBrandLoading } = useFetchBrandList()
   const { data: categoryList, isLoading: isCategoryLoading } = useFetchCategoryList()
-  const { data: subCategoryList, isLoading: isSubCategoryLoading } = useFetchSubCategoryByCategory(categoryId)
-  const { data: productTypeList, isLoading: isProductTypeLoading } = useFetchProductTypeBySubCategory(formData.subCategoryId)
+
+  // Chỉ fetch sub-categories khi modal mở
+  const { data: subCategoryList, isLoading: isSubCategoryLoading } = useFetchSubCategoryByCategory(categoryId, {
+    enabled: open
+  })
+
+  // Chỉ fetch product types khi modal mở
+  const { data: productTypeList, isLoading: isProductTypeLoading } = useFetchProductTypeBySubCategory(formData.subCategoryId, {
+    enabled: open
+  })
 
   const { mutate: updateProduct, isPending: isUpdatingProduct } = useFetchUpdateProduct({
     onSuccess: () => {

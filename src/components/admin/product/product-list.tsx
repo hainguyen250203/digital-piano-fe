@@ -287,9 +287,9 @@ export default function ProductList({ products }: { products: ProductListData[] 
       {/* Modals */}
       <CreateProductModal open={createProductModalOpen} onClose={() => setCreateProductModalOpen(false)} />
 
-      {selectedProduct?.data && <EditProductModal open={editProductModalOpen} onClose={handleCloseEditModal} product={selectedProduct.data} />}
+      {editProductModalOpen && selectedProduct?.data && <EditProductModal open={editProductModalOpen} onClose={handleCloseEditModal} product={selectedProduct.data} />}
 
-      {selectedProduct?.data && <ViewProductModal open={viewProductModalOpen} onClose={handleCloseViewModal} product={selectedProduct.data} />}
+      {viewProductModalOpen && selectedProduct?.data && <ViewProductModal open={viewProductModalOpen} onClose={handleCloseViewModal} product={selectedProduct.data} />}
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog

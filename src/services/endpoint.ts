@@ -172,6 +172,8 @@ export const Endpoint = () => {
       create: `${BASE_URL}/reviews`,
       update: (id: string) => `${BASE_URL}/reviews/${id}`,
       delete: (id: string) => `${BASE_URL}/reviews/${id}`,
+      adminUpdate: (id: string) => `${BASE_URL}/admin/reviews/${id}`,
+      adminDelete: (id: string) => `${BASE_URL}/admin/reviews/${id}`,
     },
   };
 };
