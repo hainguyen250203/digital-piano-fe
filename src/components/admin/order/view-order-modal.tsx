@@ -279,44 +279,50 @@ export default function ViewOrderModal({ open, onClose, orderId }: ViewOrderModa
 
             <Stack spacing={2} divider={<Divider flexItem />}>
               {Array.isArray(orderData.items) && orderData.items.length > 0 ? (
-                orderData.items.map(item => (
-                  <Box key={item.id} sx={{ display: 'flex', gap: 2 }}>
-                    <Box
-                      sx={{
-                        width: 80,
-                        height: 80,
-                        position: 'relative',
-                        flexShrink: 0,
-                        borderRadius: 1,
-                        overflow: 'hidden',
-                        border: '1px solid',
-                        borderColor: 'divider'
-                      }}
-                    >
-                      {item.product.defaultImage.url ? (
-                        <Image src={item.product.defaultImage.url} alt={item.productName || 'Sản phẩm'} layout='fill' objectFit='cover' />
-                      ) : (
-                        <Box sx={{ width: 80, height: 80, bgcolor: 'grey.100', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Typography variant='caption'>Không có ảnh</Typography>
+                orderData.items.map(item => {
+                  const isReturned = Array.isArray(item.productReturns) && item.productReturns.length > 0
+                  return (
+                    <Box key={item.id} sx={isReturned ? { border: '2px solid', borderColor: 'warning.main', borderRadius: 2, bgcolor: 'rgba(255, 193, 7, 0.08)' } : {}}>
+                      <Box sx={{ display: 'flex', gap: 2 }}>
+                        <Box
+                          sx={{
+                            width: 80,
+                            height: 80,
+                            position: 'relative',
+                            flexShrink: 0,
+                            borderRadius: 1,
+                            overflow: 'hidden',
+                            border: '1px solid',
+                            borderColor: 'divider'
+                          }}
+                        >
+                          {item.product.defaultImage.url ? (
+                            <Image src={item.product.defaultImage.url} alt={item.productName || 'Sản phẩm'} layout='fill' objectFit='cover' />
+                          ) : (
+                            <Box sx={{ width: 80, height: 80, bgcolor: 'grey.100', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Typography variant='caption'>Không có ảnh</Typography>
+                            </Box>
+                          )}
                         </Box>
-                      )}
-                    </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant='subtitle2'>{item.productName || `Sản phẩm #${item.productId}`}</Typography>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1, flexWrap: 'wrap' }}>
-                        <Typography variant='body2' color='text.secondary'>
-                          Số lượng: {item.quantity}
-                        </Typography>
-                        <Typography variant='body2' fontWeight={600}>
-                          {formatCurrency(item.price)}
-                        </Typography>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant='subtitle2'>{item.productName || `Sản phẩm #${item.productId}`}</Typography>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1, flexWrap: 'wrap' }}>
+                            <Typography variant='body2' color='text.secondary'>
+                              Số lượng: {item.quantity}
+                            </Typography>
+                            <Typography variant='body2' fontWeight={600}>
+                              {formatCurrency(item.price)}
+                            </Typography>
+                          </Box>
+                          <Typography variant='body2' fontWeight={600} sx={{ mt: 1, textAlign: 'right' }}>
+                            Thành tiền: {formatCurrency(item.price * item.quantity)}
+                          </Typography>
+                          {isReturned && <Chip label='Đã trả hàng' color='warning' size='small' sx={{ mt: 1 }} />}
+                        </Box>
                       </Box>
-                      <Typography variant='body2' fontWeight={600} sx={{ mt: 1, textAlign: 'right' }}>
-                        Thành tiền: {formatCurrency(item.price * item.quantity)}
-                      </Typography>
                     </Box>
-                  </Box>
-                ))
+                  )
+                })
               ) : (
                 <Box sx={{ py: 2, textAlign: 'center' }}>
                   <Typography variant='body2' color='text.secondary'>
@@ -352,7 +358,7 @@ export default function ViewOrderModal({ open, onClose, orderId }: ViewOrderModa
               {orderData.shippingFee !== undefined && (
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant='body2'>Phí vận chuyển:</Typography>
-                  <Typography variant='body2'>{formatCurrency(orderData.shippingFee)}</Typography>
+                  <Typography variant='body2'>{formatCurrency(orderData.shippingFee ?? 0)}</Typography>
                 </Box>
               )}
 

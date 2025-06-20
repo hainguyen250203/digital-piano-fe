@@ -1,3 +1,4 @@
+import AssignmentReturnIcon from '@mui/icons-material/AssignmentReturn'
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag'
 import { Box, Typography } from '@mui/material'
 
@@ -22,4 +23,27 @@ export default function OrderHistoryHeader() {
       </Box>
     </Box>
   )
-} 
+}
+
+export function ReturnHistoryHeader() {
+  return (
+    <Box
+      sx={{
+        bgcolor: 'primary.main',
+        color: 'white',
+        py: 2,
+        px: 3,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <AssignmentReturnIcon />
+        <Typography variant='h6' component='h2'>
+          Lịch Sử Trả Hàng
+        </Typography>
+      </Box>
+    </Box>
+  )
+}

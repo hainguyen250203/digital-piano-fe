@@ -175,6 +175,14 @@ export const Endpoint = () => {
       adminUpdate: (id: string) => `${BASE_URL}/admin/reviews/${id}`,
       adminDelete: (id: string) => `${BASE_URL}/admin/reviews/${id}`,
     },
+
+    productReturn: {
+      create: (orderId: string) => `${BASE_URL}/product-returns/${orderId}`,
+      getUserReturns: `${BASE_URL}/product-returns`,
+      getAllReturns: `${BASE_URL}/product-returns/admin`,
+      updateStatus: (returnId: string) => `${BASE_URL}/product-returns/${returnId}/status`,
+      cancel: (returnId: string) => `${BASE_URL}/product-returns/${returnId}/cancel`,
+    },
   };
 };
 

@@ -64,6 +64,21 @@ export interface ProductReview {
   updatedAt: string | Date;
 }
 
+export interface ProductReturnInOrderItem {
+  id: string;
+  status: string;
+  quantity: number;
+  createdAt: string;
+  orderItem: {
+    id: string;
+    product: {
+      id: string;
+      name: string;
+      defaultImage: DefaultImage;
+    };
+  };
+}
+
 export interface OrderItem {
   id: string;
   orderId?: string;
@@ -75,6 +90,7 @@ export interface OrderItem {
   product: Product;
   createdAt?: string | Date;
   updatedAt?: string | Date;
+  productReturns?: ProductReturnInOrderItem[];
 }
 
 export interface ResponseReview {
@@ -103,16 +119,16 @@ export interface ResponseOrder {
   id: string;
   userId: string;
   addressId: string;
-  discountId?: string;
+  discountId?: string | null;
   orderStatus: OrderStatus;
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;
-  transactionId?: string;
-  paidAt?: Date | string;
-  discountAmount?: number;
+  transactionId?: string | null;
+  paidAt?: Date | string | null;
+  discountAmount?: number | null;
   orderTotal: number;
-  shippingFee?: number;
-  note?: string;
+  shippingFee?: number | null;
+  note?: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
   items: OrderItem[];

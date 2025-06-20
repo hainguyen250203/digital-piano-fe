@@ -2,13 +2,14 @@
 
 import ReviewForm from '@/components/popup/OrderDetailPopup/ReviewForm'
 import ReviewItem from '@/components/popup/OrderDetailPopup/ReviewItem'
+import { useFetchCreateProductReturn } from '@/hooks/apis/product-return'
 import { useFetchCreateReview, useFetchDeleteReview, useFetchUpdateReview } from '@/hooks/apis/review'
 import { BaseResponse } from '@/types/base-response'
 import { OrderItem, OrderStatus, ProductReview, ResponseOrder } from '@/types/order.type'
 import { formatCurrency } from '@/utils/format'
 import RateReviewIcon from '@mui/icons-material/RateReview'
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag'
-import { Box, Button, Divider, Paper, Stack, Typography } from '@mui/material'
+import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Paper, Stack, TextField, Typography } from '@mui/material'
 import { UseMutateFunction } from '@tanstack/react-query'
 import Image from 'next/image'
 import { memo, useCallback, useState } from 'react'
@@ -31,6 +32,7 @@ interface ReviewFormData {
 export default memo(function OrderItems({ orderData, refreshOrder }: OrderItemsProps) {
   const [reviewForm, setReviewForm] = useState<ReviewFormData | null>(null)
   const [isEditMode, setIsEditMode] = useState(false)
+  const [returnForm, setReturnForm] = useState<{ open: boolean; orderItemId: string; quantity: number; reason: string } | null>(null)
 
   // Create review mutation
   const { mutate: createReview, isPending: isCreatingReview } = useFetchCreateReview(orderData.id, {
@@ -64,6 +66,18 @@ export default memo(function OrderItems({ orderData, refreshOrder }: OrderItemsP
     },
     onError: error => {
       toast.error(error?.message || 'Xóa đánh giá thất bại')
+    }
+  })
+
+  // Create product return mutation
+  const { mutate: createReturn, isPending: isCreatingReturn } = useFetchCreateProductReturn(orderData.id, {
+    onSuccess: () => {
+      toast.success('Yêu cầu trả hàng đã được gửi')
+      setReturnForm(null)
+      setTimeout(() => refreshOrder(orderData.id), 500)
+    },
+    onError: error => {
+      toast.error(error?.message || 'Gửi yêu cầu trả hàng thất bại')
     }
   })
 
@@ -172,9 +186,10 @@ export default memo(function OrderItems({ orderData, refreshOrder }: OrderItemsP
           orderData.items.map((item: OrderItem) => {
             const itemReview = findReviewForItem(item)
             const isEditing = isEditMode && reviewForm?.orderItemId === item.id
+            const isReturned = Array.isArray(item.productReturns) && item.productReturns.length > 0
 
             return (
-              <Box key={item.id}>
+              <Box key={item.id} sx={isReturned ? { border: '2px solid', borderColor: 'warning.main', borderRadius: 2, bgcolor: 'rgba(255, 193, 7, 0.08)' } : {}}>
                 <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
                   <Box
                     sx={{
@@ -213,26 +228,39 @@ export default memo(function OrderItems({ orderData, refreshOrder }: OrderItemsP
                   </Box>
                 </Box>
 
+                {/* Return action button */}
+                {isReturned ? (
+                  <Chip label='Đã trả hàng' color='warning' size='small' sx={{ mt: 1 }} />
+                ) : (
+                  <Button variant='outlined' size='small' sx={{ mt: 1 }} onClick={() => setReturnForm({ open: true, orderItemId: item.id, quantity: 1, reason: '' })}>
+                    Trả hàng
+                  </Button>
+                )}
+
                 {/* Review section - only show for delivered orders */}
                 {orderData.orderStatus === OrderStatus.DELIVERED && (
                   <Box sx={{ mt: 2, ml: { xs: 0, sm: 12 } }}>
-                    {isEditing || shouldShowReviewForm(item.id) ? (
-                      <ReviewForm
-                        reviewForm={reviewForm}
-                        isEditMode={isEditMode}
-                        isCreatingReview={isCreatingReview}
-                        isUpdatingReview={isUpdatingReview}
-                        onRatingChange={handleRatingChange}
-                        onContentChange={handleContentChange}
-                        onCancel={handleCancelReview}
-                        onSubmit={handleSubmitReview}
-                      />
-                    ) : itemReview ? (
-                      <ReviewItem review={itemReview} onEdit={() => handleEditReview(itemReview)} onDelete={() => handleDeleteReview(itemReview.id)} isDeleting={isDeletingReview} />
-                    ) : (
-                      <Button variant='outlined' size='small' startIcon={<RateReviewIcon />} onClick={() => handleOpenReviewForm(item)} sx={{ mt: 1 }}>
-                        Viết đánh giá
-                      </Button>
+                    {!isReturned && (
+                      <>
+                        {isEditing || shouldShowReviewForm(item.id) ? (
+                          <ReviewForm
+                            reviewForm={reviewForm}
+                            isEditMode={isEditMode}
+                            isCreatingReview={isCreatingReview}
+                            isUpdatingReview={isUpdatingReview}
+                            onRatingChange={handleRatingChange}
+                            onContentChange={handleContentChange}
+                            onCancel={handleCancelReview}
+                            onSubmit={handleSubmitReview}
+                          />
+                        ) : itemReview ? (
+                          <ReviewItem review={itemReview} onEdit={() => handleEditReview(itemReview)} onDelete={() => handleDeleteReview(itemReview.id)} isDeleting={isDeletingReview} />
+                        ) : (
+                          <Button variant='outlined' size='small' startIcon={<RateReviewIcon />} onClick={() => handleOpenReviewForm(item)} sx={{ mt: 1 }}>
+                            Viết đánh giá
+                          </Button>
+                        )}
+                      </>
                     )}
                   </Box>
                 )}
@@ -247,6 +275,51 @@ export default memo(function OrderItems({ orderData, refreshOrder }: OrderItemsP
           </Box>
         )}
       </Stack>
+
+      {/* Return Form Dialog */}
+      <Dialog open={!!returnForm} onClose={() => setReturnForm(null)}>
+        <DialogTitle>Yêu cầu trả hàng</DialogTitle>
+        <DialogContent>
+          <TextField
+            label='Số lượng trả'
+            type='number'
+            fullWidth
+            margin='normal'
+            inputProps={{ min: 1, max: orderData.items.find(i => i.id === returnForm?.orderItemId)?.quantity || 1 }}
+            value={returnForm?.quantity || 1}
+            onChange={e => setReturnForm(f => (f ? { ...f, quantity: Math.max(1, Math.min(Number(e.target.value), orderData.items.find(i => i.id === f.orderItemId)?.quantity || 1)) } : f))}
+          />
+          <TextField
+            label='Lý do trả hàng'
+            fullWidth
+            margin='normal'
+            multiline
+            minRows={2}
+            value={returnForm?.reason || ''}
+            onChange={e => setReturnForm(f => (f ? { ...f, reason: e.target.value } : f))}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setReturnForm(null)} disabled={isCreatingReturn}>
+            Hủy
+          </Button>
+          <Button
+            onClick={() => {
+              if (returnForm) {
+                createReturn({
+                  orderItemId: returnForm.orderItemId,
+                  quantity: returnForm.quantity,
+                  reason: returnForm.reason
+                })
+              }
+            }}
+            disabled={isCreatingReturn || !returnForm?.reason || !returnForm?.quantity}
+            variant='contained'
+          >
+            Gửi yêu cầu
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   )
 })

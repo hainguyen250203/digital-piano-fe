@@ -4,6 +4,7 @@ import AddressSection from '@/components/profile/MyAddress'
 import OrderHistory from '@/components/profile/OrderHistory'
 import ProfileInformation from '@/components/profile/ProfileInformation'
 import { AddressSkeleton, OrderHistorySkeleton, ProfileInformationSkeleton } from '@/components/profile/ProfileSkeleton'
+import ReturnHistory from '@/components/profile/ReturnHistory'
 import { UserProvider, useUserContext } from '@/context/UserContext'
 import { Box, Grid, Typography } from '@mui/material'
 
@@ -47,6 +48,10 @@ function ProfileContent() {
 
             {/* Order History with spacing */}
             <Grid size={{ xs: 12 }}>{orderLoading ? <OrderHistorySkeleton /> : <OrderHistory orderData={orderData} orderRefetch={orderRefetch} />}</Grid>
+            {/* Return History with spacing */}
+            <Grid size={{ xs: 12 }}>
+              <ReturnHistory />
+            </Grid>
           </Grid>
         </Grid>
       </Grid>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useFetchGetOrderDetailByUserId, useRefreshOrder } from '@/hooks/apis/order'
+import { ResponseOrder } from '@/types/order.type'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CloseIcon from '@mui/icons-material/Close'
 import { Box, Button, Dialog, DialogContent, IconButton, Stack, Typography, useMediaQuery, useTheme } from '@mui/material'
@@ -22,9 +23,12 @@ interface OrderDetailPopupProps {
   orderId: string
   onPayAgain?: (orderId: string) => void
   isRepaymentLoading?: boolean
+  highlightOrderItemId?: string | null
+  orderData?: ResponseOrder | undefined
+  isLoading?: boolean
 }
 
-export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, isRepaymentLoading = false }: OrderDetailPopupProps) {
+export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, isRepaymentLoading = false, orderData: orderDataProp, isLoading }: OrderDetailPopupProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
@@ -38,7 +42,7 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
     onError: error => {
       toast.error(error.message || 'Có lỗi xảy ra khi tải thông tin đơn hàng')
     },
-    enabled: !!orderId && open // Only fetch when orderId exists and popup is open
+    enabled: !orderDataProp && !!orderId && open // Only fetch when orderId exists and popup is open and not using pre-fetched data
   })
 
   // Refresh order mutation
@@ -49,7 +53,7 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
   })
 
   // Get the actual order data from the response
-  const orderData = orderResponse?.data
+  const orderData = orderDataProp || orderResponse?.data
 
   // Callback for payment actions
   const handlePayAgain = useCallback(() => {
@@ -68,7 +72,7 @@ export default function OrderDetailPopup({ open, onClose, orderId, onPayAgain, i
   )
 
   // Show loading state
-  if (isPending) {
+  if (isLoading || isPending) {
     return (
       <Dialog
         open={open}
