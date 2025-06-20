@@ -41,7 +41,7 @@ export default memo(function OrderSummary({ orderData }: OrderSummaryProps) {
         {orderData.shippingFee !== undefined && (
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Typography variant='body2'>Phí vận chuyển:</Typography>
-            <Typography variant='body2'>{formatCurrency(orderData.shippingFee)}</Typography>
+            <Typography variant='body2'>{formatCurrency(orderData.shippingFee || 0)}</Typography>
           </Box>
         )}
 
