@@ -190,7 +190,6 @@ export default function ProductItem({ product }: ProductItemProps) {
 
   const handleAddToCart = () => {
     if (isOutOfStock) return
-    console.log('Attempting to add to cart:', product.id)
     addToCartMutation({ productId: product.id })
   }
 

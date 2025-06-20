@@ -24,6 +24,9 @@ export default function UserActions({ isLoggedIn, openLoginPopup, openCartPopup,
   const { data: Cart } = useFetchGetCart()
   const { data: Favorite } = useFetchWishlist()
 
+  // Tính tổng số lượng sản phẩm trong giỏ hàng
+  const cartQuantity = Cart?.data?.items?.reduce((total, item) => total + item.quantity, 0) || 0
+
   return (
     <Box sx={{ display: 'flex', alignItems: 'center' }}>
       {isLoggedIn ? (
@@ -40,7 +43,7 @@ export default function UserActions({ isLoggedIn, openLoginPopup, openCartPopup,
 
           <Tooltip title='Giỏ hàng'>
             <IconButton color='inherit' sx={{ ml: 1 }} onClick={openCartPopup}>
-              <Badge badgeContent={Cart?.data.totalQuantity || 0} color='primary' showZero>
+              <Badge badgeContent={cartQuantity} color='primary' showZero>
                 <ShoppingCartIcon />
               </Badge>
             </IconButton>

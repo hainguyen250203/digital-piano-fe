@@ -7,29 +7,23 @@ export type UpdateCartItem = {
   quantity: number
 }
 
-// Định nghĩa kiểu cho hình ảnh mặc định của sản phẩm
-interface ImageType {
-  id: string;
-  url: string;
-  productId: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Định nghĩa kiểu cho sản phẩm
-interface ProductType {
-  id: string;
-  name: string;
-  price: number;
-  salePrice: number;
-  defaultImage: ImageType;
-}
-
-// Định nghĩa kiểu cho từng item trong giỏ hàng
+// Định nghĩa kiểu cho từng item trong giỏ hàng theo mẫu yêu cầu
 export interface CartItemType {
   id: string;
   quantity: number;
-  product: ProductType;
+  product: {
+    id: string;
+    name: string;
+    price: number;
+    salePrice: number;
+    defaultImage: {
+      id: string;
+      url: string;
+      productId: string;
+      createdAt: string;
+      updatedAt: string;
+    } | null;
+  };
 }
 
 // Định nghĩa kiểu dữ liệu trả về cho giỏ hàng
@@ -39,6 +33,4 @@ export interface ResCartType {
   createdAt: string;
   updatedAt: string;
   items: CartItemType[];
-  totalQuantity: number;
-  totalPrice: number;
 }

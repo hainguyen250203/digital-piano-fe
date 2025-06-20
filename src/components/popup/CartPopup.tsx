@@ -7,7 +7,7 @@ import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import { Box, Button, CircularProgress, Typography, useTheme } from '@mui/material'
 import { useRouter } from 'next/navigation'
-import React, { useEffect } from 'react'
+import React from 'react'
 import { toast } from 'react-toastify'
 
 interface CartPopupProps {
@@ -20,18 +20,11 @@ const CartPopup: React.FC<CartPopupProps> = ({ open, onClose }) => {
   const router = useRouter()
 
   // Use cart query hook directly
-  const { data: cartData, isLoading: cartLoading, refetch: refreshCart } = useFetchGetCart()
-
-  // Refetch cart data when popup opens
-  useEffect(() => {
-    if (open) {
-      refreshCart()
-    }
-  }, [open, refreshCart])
+  const { data: cartData, isLoading: cartLoading } = useFetchGetCart()
 
   const cartItems = cartData?.data?.items || []
-  const cartCount = cartData?.data?.totalQuantity || 0
-  const totalPrice = cartData?.data?.totalPrice || 0
+  const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0)
+  const totalPrice = cartItems.reduce((total, item) => total + item.product.price * item.quantity, 0)
 
   const handleCheckout = () => {
     if (cartCount === 0) {

@@ -2,6 +2,7 @@ import { QueryKey } from "@/models/QueryKey"
 import { addToCart, deleteCartItem, FetchUpdateCartItem, getCart } from "@/services/apis/cart"
 import { BaseResponse } from "@/types/base-response"
 import { AddProductToCart, CartItemType, ResCartType, UpdateCartItem } from "@/types/cart.type"
+import { isAuthenticated } from "@/utils/auth"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 export const useFetchAddToCart = (options?: {
@@ -18,47 +19,49 @@ export const useFetchAddToCart = (options?: {
     },
     onSuccess: async (data) => {
       const currentCart = queryClient.getQueryData<BaseResponse<ResCartType>>([QueryKey.GET_CART])
-
+      console.log('[AddToCart] Current cart cache:', currentCart)
       if (!currentCart?.data) {
+        console.log('[AddToCart] No cache found, invalidating query')
         await queryClient.invalidateQueries({ queryKey: [QueryKey.GET_CART] })
+        options?.onSuccess?.(data)
         return
       }
-
-      const updatedItems = [...currentCart.data.items]
-      const existingItemIndex = updatedItems.findIndex(item => item.product.id === data.data.product.id)
-
-      if (existingItemIndex !== -1) {
-        updatedItems[existingItemIndex] = data.data
+      // Kiểm tra sản phẩm đã có trong giỏ chưa
+      const existIndex = currentCart.data.items.findIndex(item => item.id === data.data.id)
+      let updatedItems
+      if (existIndex !== -1) {
+        console.log('[AddToCart] Product existed in cart, updating item')
+        updatedItems = currentCart.data.items.map(item =>
+          item.id === data.data.id ? data.data : item
+        )
       } else {
-        updatedItems.push(data.data)
+        console.log('[AddToCart] Product not in cart, adding new item')
+        updatedItems = [...currentCart.data.items, data.data]
       }
-
       const newTotalQuantity = updatedItems.reduce((total, item) => total + item.quantity, 0)
-
-      queryClient.setQueryData([QueryKey.GET_CART], {
+      const newTotalPrice = updatedItems.reduce((total, item) => total + (item.product.price * item.quantity), 0)
+      const newCart = {
         ...currentCart,
         data: {
           ...currentCart.data,
           items: updatedItems,
           totalQuantity: newTotalQuantity,
-          totalPrice: currentCart.data.totalPrice + (data.data.product.price * data.data.quantity)
+          totalPrice: newTotalPrice
         }
-      })
-
+      }
+      console.log('[AddToCart] Updated cart cache:', newCart)
+      queryClient.setQueryData([QueryKey.GET_CART], newCart)
       options?.onSuccess?.(data)
     },
-    ...options
+    ...options?.onError
   })
 }
 
-export const useFetchGetCart = (options?: {
-  onSuccess?: (data: BaseResponse<ResCartType>) => void
-  onError?: (error: BaseResponse<null>) => void
-}) => {
+export const useFetchGetCart = () => {
   return useQuery({
     queryKey: [QueryKey.GET_CART],
     queryFn: () => getCart(),
-    ...options
+    enabled: isAuthenticated(),
   })
 }
 

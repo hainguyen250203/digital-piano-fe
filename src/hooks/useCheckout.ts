@@ -82,16 +82,16 @@ export function useCheckout(): UseCheckoutReturn {
     if (addressData?.data?.length === 0 || !addressData?.data) {
       setOrderState(prev => ({ ...prev, useNewAddress: true }))
     } else if (addressData?.data?.[0]?.id && !orderState.selectedAddressId) {
-      setOrderState(prev => ({ 
-        ...prev, 
+      setOrderState(prev => ({
+        ...prev,
         selectedAddressId: addressData.data[0].id,
-        useNewAddress: false 
+        useNewAddress: false
       }))
     }
   }, [addressData, orderState.selectedAddressId])
 
   // Calculate totals
-  const cartSubtotal = cartData?.data?.totalPrice || 0
+  const cartSubtotal = cartData?.data?.items?.reduce((total, item) => total + item.product.price * item.quantity, 0) || 0
   const { discountAmount, finalTotal } = useMemo(() => {
     let amount = 0
     const discount = discountState.data

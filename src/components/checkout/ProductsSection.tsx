@@ -26,7 +26,7 @@ export default function ProductsSection({ items }: ProductsSectionProps) {
           items.map(item => (
             <Box key={item.id} sx={{ display: 'flex', mb: 2, py: 1 }}>
               <Box>
-                <Image src={item.product.defaultImage.url} alt={item.product.name} width={80} height={80} />
+                <Image src={item.product.defaultImage?.url || 'https://www.aaronfaber.com/wp-content/uploads/2017/03/product-placeholder-wp.jpg'} alt={item.product.name} width={80} height={80} />
               </Box>
               <Box sx={{ flex: 1, ml: 2 }}>
                 <Typography variant='body1' fontWeight='bold'>
@@ -35,11 +35,7 @@ export default function ProductsSection({ items }: ProductsSectionProps) {
                 <Typography variant='body2' color='text.secondary'>
                   Số lượng: {item.quantity}
                 </Typography>
-                <Typography variant='body1'>
-                  {item.product.salePrice 
-                    ? formatCurrency(item.product.salePrice * item.quantity) 
-                    : formatCurrency(item.product.price * item.quantity)}
-                </Typography>
+                <Typography variant='body1'>{item.product.salePrice ? formatCurrency(item.product.salePrice * item.quantity) : formatCurrency(item.product.price * item.quantity)}</Typography>
               </Box>
             </Box>
           ))
@@ -47,4 +43,4 @@ export default function ProductsSection({ items }: ProductsSectionProps) {
       </CardContent>
     </Card>
   )
-} 
+}
