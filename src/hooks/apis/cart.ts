@@ -17,7 +17,7 @@ export const useFetchAddToCart = (options?: {
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: [QueryKey.GET_CART] })
     },
-    onSuccess: async (data) => {
+    onSuccess: async (data: BaseResponse<CartItemType>) => {
       const currentCart = queryClient.getQueryData<BaseResponse<ResCartType>>([QueryKey.GET_CART])
       console.log('[AddToCart] Current cart cache:', currentCart)
       if (!currentCart?.data) {
@@ -53,7 +53,7 @@ export const useFetchAddToCart = (options?: {
       queryClient.setQueryData([QueryKey.GET_CART], newCart)
       options?.onSuccess?.(data)
     },
-    ...options?.onError
+    onError: options?.onError
   })
 }
 
