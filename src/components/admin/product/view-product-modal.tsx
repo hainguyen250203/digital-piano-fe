@@ -25,7 +25,7 @@ export default memo(function ViewProductModal({ open, onClose, product }: ViewPr
   const memoizedDescription = useMemo(() => {
     if (!product) return []
     return typeof product.description === 'string' ? JSON.parse(product.description) : product.description || []
-  }, [product?.description])
+  }, [product])
 
   const memoizedImages = useMemo(() => {
     return product?.images || []

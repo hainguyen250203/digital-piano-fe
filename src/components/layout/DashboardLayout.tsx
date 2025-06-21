@@ -50,7 +50,7 @@ const navLinks = [
   { label: 'Đơn hàng', icon: <CartIcon />, href: '/admin/orders', allowedRoles: ['ADMIN', 'STAFF'] },
   { label: 'Hóa đơn', icon: <ReceiptIcon />, href: '/admin/invoices', allowedRoles: ['ADMIN', 'STAFF'] },
   { label: 'Giảm giá', icon: <DiscountIcon />, href: '/admin/discounts', allowedRoles: ['ADMIN'] },
-  { label: 'Lịch sử trả hàng', icon: <AssignmentReturnIcon />, href: '/admin/returns', allowedRoles: ['ADMIN'] }
+  { label: 'Lịch sử trả hàng', icon: <AssignmentReturnIcon />, href: '/admin/returns', allowedRoles: ['ADMIN', 'STAFF'] }
 ]
 
 interface DashboardLayoutProps {

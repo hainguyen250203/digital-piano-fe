@@ -1,6 +1,8 @@
 'use client'
 
+import OrderDetailPopup from '@/components/popup/OrderDetailPopup/OrderDetailPopup'
 import ReturnTable from '@/components/profile/ReturnTable'
+import ReturnsGrid from '@/components/profile/ReturnsGrid'
 import { useFetchGetUserProductReturns } from '@/hooks/apis/product-return'
 import { Alert, Box, Paper, TablePagination, Typography, useMediaQuery, useTheme } from '@mui/material'
 import { useMemo, useState } from 'react'
@@ -13,6 +15,8 @@ export default function ReturnHistory() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
 
   const { data: returnData, isError } = useFetchGetUserProductReturns()
 
@@ -29,6 +33,18 @@ export default function ReturnHistory() {
     if (isMobile) return filteredReturns
     return filteredReturns.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
   }, [filteredReturns, isMobile, page, rowsPerPage])
+
+  const handleOpenDetail = (orderId: string) => {
+    setSelectedOrderId(orderId)
+    setDetailOpen(true)
+  }
+
+  const handleCloseDetail = () => {
+    setDetailOpen(false)
+    setTimeout(() => {
+      setSelectedOrderId(null)
+    }, 300)
+  }
 
   if (isError) {
     return (
@@ -60,26 +76,33 @@ export default function ReturnHistory() {
           </Box>
         ) : (
           <>
-            <ReturnTable returns={displayReturns} />
-            {!isMobile && (
-              <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component='div'
-                count={filteredReturns.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={(_, newPage) => setPage(newPage)}
-                onRowsPerPageChange={e => {
-                  setRowsPerPage(parseInt(e.target.value, 10))
-                  setPage(0)
-                }}
-                labelRowsPerPage='Yêu cầu mỗi trang:'
-                labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count}`}
-              />
+            {isMobile ? (
+              <ReturnsGrid returns={displayReturns} onViewOrder={handleOpenDetail} />
+            ) : (
+              <>
+                <ReturnTable returns={displayReturns} onViewOrderDetail={handleOpenDetail} />
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25]}
+                  component='div'
+                  count={filteredReturns.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={(_, newPage) => setPage(newPage)}
+                  onRowsPerPageChange={e => {
+                    setRowsPerPage(parseInt(e.target.value, 10))
+                    setPage(0)
+                  }}
+                  labelRowsPerPage='Yêu cầu mỗi trang:'
+                  labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count}`}
+                />
+              </>
             )}
           </>
         )}
       </Paper>
+
+      {/* Order detail popup */}
+      {selectedOrderId && <OrderDetailPopup open={detailOpen} onClose={handleCloseDetail} orderId={selectedOrderId} />}
     </>
   )
 }

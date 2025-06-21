@@ -1,14 +1,17 @@
 import { useFetchUpdateProductReturnStatus } from '@/hooks/apis/product-return'
 import { ResProductReturn, ReturnStatus } from '@/types/return.interface'
 import VisibilityIcon from '@mui/icons-material/Visibility'
-import { Chip, FormControl, IconButton, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
+import { Box, Chip, FormControl, IconButton, MenuItem, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
 import React, { useState } from 'react'
 import { toast } from 'react-toastify'
 
 interface ReturnTableProps {
   returns: ResProductReturn[]
   isAdmin?: boolean
+  isCancelReturnLoading?: boolean
   onViewOrder?: (orderId: string, orderItemId: string) => void
+  onViewOrderDetail?: (orderId: string) => void
+  onCancelReturn?: (returnId: string) => void
 }
 
 function getReturnStatusLabel(status: ReturnStatus) {
@@ -33,7 +36,7 @@ const statusOptions = [
   { value: ReturnStatus.COMPLETED, label: 'Hoàn tất' }
 ]
 
-export default function ReturnTable({ returns, isAdmin, onViewOrder }: ReturnTableProps) {
+export default function ReturnTable({ returns, isAdmin, onViewOrder, onViewOrderDetail }: ReturnTableProps) {
   const [localReturns, setLocalReturns] = useState(returns)
   const [lastUpdate, setLastUpdate] = useState<{ returnId: string; status: ReturnStatus } | null>(null)
 
@@ -90,13 +93,11 @@ export default function ReturnTable({ returns, isAdmin, onViewOrder }: ReturnTab
                 Trạng thái
               </Typography>
             </TableCell>
-            {isAdmin && (
-              <TableCell>
-                <Typography variant='subtitle2' fontWeight={600}>
-                  Thao tác
-                </Typography>
-              </TableCell>
-            )}
+            <TableCell>
+              <Typography variant='subtitle2' fontWeight={600}>
+                Thao tác
+              </Typography>
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -145,13 +146,32 @@ export default function ReturnTable({ returns, isAdmin, onViewOrder }: ReturnTab
                   />
                 )}
               </TableCell>
-              {isAdmin && (
-                <TableCell>
-                  <IconButton size='small' onClick={() => onViewOrder?.(ret.orderId, ret.orderItem.id)} title='Xem đơn hàng'>
+              <TableCell>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {/* View order detail button */}
+                  <IconButton
+                    size='small'
+                    onClick={() => onViewOrderDetail?.(ret.orderId)}
+                    title='Xem đơn hàng gốc'
+                    sx={{
+                      'color': 'primary.main',
+                      '&:hover': {
+                        backgroundColor: 'primary.light',
+                        color: 'white'
+                      }
+                    }}
+                  >
                     <VisibilityIcon />
                   </IconButton>
-                </TableCell>
-              )}
+
+                  {/* Admin view order button */}
+                  {isAdmin && onViewOrder && (
+                    <IconButton size='small' onClick={() => onViewOrder?.(ret.orderId, ret.orderItem.id)} title='Xem đơn hàng' sx={{ ml: 1 }}>
+                      <VisibilityIcon />
+                    </IconButton>
+                  )}
+                </Box>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
